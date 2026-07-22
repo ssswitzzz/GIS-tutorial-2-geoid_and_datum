@@ -1,0 +1,24 @@
+# Audio dubbing directory (explicitly excluded per user request)
+*视频配音*
+#2视频配音/
+"#2视频配音"
+*.mp3
+*.wav
+
+# Virtual Environment & Python Caches
+.venv/
+.uv-datum-cache/
+__pycache__/
+*.pyc
+
+# Manim Build & Render Artifacts
+media/
+manim-video/media/
+manim-video/*.log
+manim-video/*.png
+
+# Node & Build Output
+node_modules/
+dist/
+.next/
+.DS_Store
