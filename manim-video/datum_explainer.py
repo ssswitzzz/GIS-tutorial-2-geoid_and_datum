@@ -67,10 +67,10 @@ def smooth_ellipsoid_3d_vector(
     width: float = 5.0,
     height: float = 4.1,
     color: str = BLUE,
-    fill_opacity: float = 0.14,
+    fill_opacity: float = 0.12,
     stroke_width: float = 3.5,
 ) -> VGroup:
-    """Stereoscopic 3D-styled oblate ellipsoid with 3D perspective equator ring and polar axis."""
+    """Stereoscopic 3D oblate ellipsoid with 3D perspective equator ring touching outer edges EXACTLY."""
     profile = Ellipse(
         width=width,
         height=height,
@@ -80,10 +80,10 @@ def smooth_ellipsoid_3d_vector(
         fill_opacity=fill_opacity,
     ).move_to(center)
 
-    # 3D Perspective Equatorial Ellipse Ring
+    # 3D Perspective Equatorial Ellipse Ring matching outer width EXACTLY (width=width)!
     equator_3d = Ellipse(
-        width=width * 0.96,
-        height=1.5,
+        width=width,
+        height=1.6,
         stroke_color=color,
         stroke_width=2.2,
     ).set_opacity(0.65).move_to(center)
@@ -106,7 +106,7 @@ def make_spatial_axes_2d(
     color: str = BLUE,
     label_prefix: str = "",
 ) -> VGroup:
-    """Creates a high-end, elegant 3D Isometric Spatial Cartesian Coordinate System with a subtle isometric base grid floor."""
+    """Creates a high-end 3D Isometric Spatial Cartesian Coordinate System centered directly at origin."""
     z_dir = np.array([0, 1.0, 0]) * scale
     x_dir = np.array([-0.866, -0.5, 0]) * scale
     y_dir = np.array([0.866, -0.5, 0]) * scale
@@ -231,7 +231,7 @@ class DatumExplainer(Scene):
         header1 = self.top_header("03", "第三级逼近：大地基准面")
 
         center_b1 = np.array([-3.2, -0.3, 0])
-        floating_ellipsoid = smooth_ellipsoid_3d_vector(center_b1, 5.0, 4.1, BLUE, fill_opacity=0.14)
+        floating_ellipsoid = smooth_ellipsoid_3d_vector(center_b1, 5.0, 4.1, BLUE, fill_opacity=0.12)
 
         locator_icon = VGroup(
             Dot(center_b1, radius=0.10, color=CLAY),
@@ -285,27 +285,17 @@ class DatumExplainer(Scene):
         # =========================================================================
         # BEAT 2 (15.633s -> 29.866s / Subtitles 120-127):
         # 确定椭球中心在空间中的位置、旋转轴的方向 ➔ 空间直角坐标系
-        # Ellipsoid Center O_ellipsoid is shifted to (X0, Y0, Z0), and position vector r0 points FROM World Origin O TO Ellipsoid Center O_ellipsoid!
+        # Spatial Cartesian Axes anchored directly at Ellipsoid Center O(0,0,0)!
+        # Ellipsoid equator ring width matches outer profile width EXACTLY (width=5.0)!
         # =========================================================================
         header2 = self.top_header("03", "基准面两要素：空间位置与定向")
 
-        b2_world_origin = np.array([-4.2, -1.1, 0.0])
-        spatial_axes = make_spatial_axes_2d(b2_world_origin, scale=2.5, color=BLUE)
+        b2_center = np.array([-3.2, -0.3, 0.0])
+        spatial_axes = make_spatial_axes_2d(b2_center, scale=2.3, color=BLUE)
 
-        # Ellipsoid Center sitting at shifted position (X0, Y0, Z0) in spatial coordinate system
-        ellipsoid_center = b2_world_origin + np.array([1.25, 1.10, 0])
-        aligned_ellipsoid = smooth_ellipsoid_3d_vector(ellipsoid_center, 4.6, 3.8, BLUE, fill_opacity=0.14)
+        aligned_ellipsoid = smooth_ellipsoid_3d_vector(b2_center, 5.0, 4.1, BLUE, fill_opacity=0.12)
 
-        center_dot = Dot(ellipsoid_center, radius=0.11, color=AMBER)
-        center_ring = Circle(radius=0.22, stroke_color=AMBER, stroke_width=1.8).move_to(ellipsoid_center)
-        center_text = latex(r"O_{\mathrm{ellipsoid}}", 18, AMBER).next_to(center_ring, UR, buff=0.08)
-        ellipsoid_center_group = VGroup(center_dot, center_ring, center_text)
-
-        # Position Vector r0 pointing FROM World Origin O TO Ellipsoid Center O_ellipsoid = (X0, Y0, Z0)!
-        pos_vec = Arrow(b2_world_origin, ellipsoid_center, color=AMBER, stroke_width=3.2, max_tip_length_to_length_ratio=0.18)
-        pos_label = latex(r"\mathbf{r}_0 (X_0, Y_0, Z_0)", 19, AMBER).next_to(pos_vec.get_center(), UP, buff=0.12)
-
-        rot_axis_label = cn("椭球旋转轴 ∥ 地球自转轴", 16, CLAY).next_to(aligned_ellipsoid[2], UP, buff=0.15)
+        rot_axis_label = cn("椭球旋转轴 ∥ 地球自转轴", 16, CLAY).next_to(spatial_axes[4], RIGHT, buff=0.40)
 
         b2_card_item2 = VGroup(
             cn("短轴 ", 18, CLAY),
@@ -343,10 +333,8 @@ class DatumExplainer(Scene):
             Write(header2[0]), Write(header2[1]), Write(header2[2]),
             Create(spatial_axes),
             Create(aligned_ellipsoid),
-            FadeIn(ellipsoid_center_group, scale=0.7),
             run_time=0.9,
         )
-        self.cue(19.0, GrowArrow(pos_vec), Write(pos_label), run_time=0.8)
         self.cue(21.5, Write(rot_axis_label), run_time=0.8)
         self.cue(24.5, Create(b2_card[0]), LaggedStart(*[Write(item) for item in b2_card[1]], lag_ratio=0.15), run_time=0.85)
 
@@ -417,8 +405,7 @@ class DatumExplainer(Scene):
             FadeOut(header2, shift=UP * 0.15),
             FadeOut(spatial_axes, shift=DOWN * 0.15),
             FadeOut(aligned_ellipsoid, shift=DOWN * 0.15),
-            FadeOut(ellipsoid_center_group, shift=DOWN * 0.15),
-            FadeOut(VGroup(pos_vec, pos_label, rot_axis_label), shift=DOWN * 0.15),
+            FadeOut(rot_axis_label, shift=DOWN * 0.15),
             FadeOut(b2_card, shift=DOWN * 0.15),
             run_time=0.5,
         )
