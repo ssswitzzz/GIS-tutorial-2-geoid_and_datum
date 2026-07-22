@@ -62,16 +62,16 @@ def irregular_geoid_2d(
     return shape
 
 
-def smooth_ellipsoid_2d(
+def smooth_ellipsoid_3d_vector(
     center: np.ndarray = ORIGIN,
     width: float = 5.0,
     height: float = 4.1,
     color: str = BLUE,
-    fill_opacity: float = 0.12,
+    fill_opacity: float = 0.14,
     stroke_width: float = 3.5,
 ) -> VGroup:
-    """Clean representation of an oblate ellipsoid with equator and polar axis."""
-    ellipse = Ellipse(
+    """Stereoscopic 3D-styled oblate ellipsoid with 3D perspective equator ring and polar axis."""
+    profile = Ellipse(
         width=width,
         height=height,
         stroke_color=color,
@@ -80,23 +80,24 @@ def smooth_ellipsoid_2d(
         fill_opacity=fill_opacity,
     ).move_to(center)
 
-    equator = DashedLine(
-        center + LEFT * (width * 0.5),
-        center + RIGHT * (width * 0.5),
-        color=color,
-        stroke_width=2.0,
-        dash_length=0.12,
-    ).set_opacity(0.6)
+    # 3D Perspective Equatorial Ellipse Ring
+    equator_3d = Ellipse(
+        width=width * 0.96,
+        height=1.5,
+        stroke_color=color,
+        stroke_width=2.2,
+    ).set_opacity(0.65).move_to(center)
 
+    # 3D Polar Rotation Axis
     polar_axis = DashedLine(
         center + DOWN * (height * 0.55),
         center + UP * (height * 0.55),
         color=color,
-        stroke_width=2.0,
+        stroke_width=2.2,
         dash_length=0.12,
-    ).set_opacity(0.6)
+    ).set_opacity(0.7)
 
-    return VGroup(ellipse, equator, polar_axis)
+    return VGroup(profile, equator_3d, polar_axis)
 
 
 def make_spatial_axes_2d(
@@ -230,7 +231,7 @@ class DatumExplainer(Scene):
         header1 = self.top_header("03", "第三级逼近：大地基准面")
 
         center_b1 = np.array([-3.2, -0.3, 0])
-        floating_ellipsoid = smooth_ellipsoid_2d(center_b1, 5.0, 4.1, BLUE, fill_opacity=0.12)
+        floating_ellipsoid = smooth_ellipsoid_3d_vector(center_b1, 5.0, 4.1, BLUE, fill_opacity=0.14)
 
         locator_icon = VGroup(
             Dot(center_b1, radius=0.10, color=CLAY),
@@ -284,18 +285,27 @@ class DatumExplainer(Scene):
         # =========================================================================
         # BEAT 2 (15.633s -> 29.866s / Subtitles 120-127):
         # 确定椭球中心在空间中的位置、旋转轴的方向 ➔ 空间直角坐标系
+        # Ellipsoid Center O_ellipsoid is shifted to (X0, Y0, Z0), and position vector r0 points FROM World Origin O TO Ellipsoid Center O_ellipsoid!
         # =========================================================================
         header2 = self.top_header("03", "基准面两要素：空间位置与定向")
 
-        b2_origin = np.array([-3.2, -0.4, 0.0])
-        spatial_axes = make_spatial_axes_2d(b2_origin, scale=2.3, color=BLUE)
-        aligned_ellipsoid = smooth_ellipsoid_2d(b2_origin, 5.0, 4.1, BLUE, fill_opacity=0.12)
+        b2_world_origin = np.array([-4.2, -1.1, 0.0])
+        spatial_axes = make_spatial_axes_2d(b2_world_origin, scale=2.5, color=BLUE)
 
-        pos_start = b2_origin + np.array([-2.2, -0.8, 0])
-        pos_vec = Arrow(pos_start, b2_origin, color=AMBER, stroke_width=3, max_tip_length_to_length_ratio=0.20)
-        pos_label = latex(r"\mathbf{r}_0 (X_0, Y_0, Z_0)", 19, AMBER).next_to(pos_start, LEFT, buff=0.1)
+        # Ellipsoid Center sitting at shifted position (X0, Y0, Z0) in spatial coordinate system
+        ellipsoid_center = b2_world_origin + np.array([1.25, 1.10, 0])
+        aligned_ellipsoid = smooth_ellipsoid_3d_vector(ellipsoid_center, 4.6, 3.8, BLUE, fill_opacity=0.14)
 
-        rot_axis_label = cn("椭球旋转轴 ∥ 地球自转轴", 16, CLAY).next_to(spatial_axes[4], RIGHT, buff=0.15)
+        center_dot = Dot(ellipsoid_center, radius=0.11, color=AMBER)
+        center_ring = Circle(radius=0.22, stroke_color=AMBER, stroke_width=1.8).move_to(ellipsoid_center)
+        center_text = latex(r"O_{\mathrm{ellipsoid}}", 18, AMBER).next_to(center_ring, UR, buff=0.08)
+        ellipsoid_center_group = VGroup(center_dot, center_ring, center_text)
+
+        # Position Vector r0 pointing FROM World Origin O TO Ellipsoid Center O_ellipsoid = (X0, Y0, Z0)!
+        pos_vec = Arrow(b2_world_origin, ellipsoid_center, color=AMBER, stroke_width=3.2, max_tip_length_to_length_ratio=0.18)
+        pos_label = latex(r"\mathbf{r}_0 (X_0, Y_0, Z_0)", 19, AMBER).next_to(pos_vec.get_center(), UP, buff=0.12)
+
+        rot_axis_label = cn("椭球旋转轴 ∥ 地球自转轴", 16, CLAY).next_to(aligned_ellipsoid[2], UP, buff=0.15)
 
         b2_card_item2 = VGroup(
             cn("短轴 ", 18, CLAY),
@@ -333,6 +343,7 @@ class DatumExplainer(Scene):
             Write(header2[0]), Write(header2[1]), Write(header2[2]),
             Create(spatial_axes),
             Create(aligned_ellipsoid),
+            FadeIn(ellipsoid_center_group, scale=0.7),
             run_time=0.9,
         )
         self.cue(19.0, GrowArrow(pos_vec), Write(pos_label), run_time=0.8)
@@ -342,7 +353,6 @@ class DatumExplainer(Scene):
         # =========================================================================
         # BEAT 3 (29.866s -> 61.633s / Subtitles 128-141):
         # 经典参心坐标系：寻找大地原点 (陕西省泾阳县永乐镇) ➔ 西安80参心坐标系
-        # VISUALLY 100% PERFECT TANGENT OVERLAP (SHIFTED LEFT & UP TO KISS THE STAR MARKER EXACTLY)!
         # =========================================================================
         header3 = self.top_header("03.1", "经典参心坐标系：西安80坐标系")
 
@@ -365,12 +375,10 @@ class DatumExplainer(Scene):
         origin_tag[1].move_to(origin_tag[0])
         origin_tag.move_to([-4.6, -1.8, 0])
 
-        # SHIFTED LEFT & UP SO THE TOP-LEFT EDGE OF REF_ELLIPSOID OVERLAPS AND TOUCHES TANGENT EXACTLY AT ORIGIN_PT!
         ref_center = np.array([-2.98, 0.08, 0])
-        ref_ellipsoid = smooth_ellipsoid_2d(ref_center, 5.0, 4.1, AMBER, fill_opacity=0.12)
+        ref_ellipsoid = smooth_ellipsoid_3d_vector(ref_center, 5.0, 4.1, AMBER, fill_opacity=0.12)
         ref_spatial_axes = make_spatial_axes_2d(ref_center, scale=1.6, label_prefix="80", color=AMBER)
 
-        # Highlight green tangent glow curve right on the shared contact arc
         tangent_pts = [geoid_curve_point(th, geoid_center, 4.8, 4.2) for th in np.linspace(2.28, 2.62, 25)]
         tangent_glow = VMobject(stroke_color=SAGE, stroke_width=7.5).set_opacity(0.95)
         tangent_glow.set_points_smoothly(tangent_pts)
@@ -409,6 +417,7 @@ class DatumExplainer(Scene):
             FadeOut(header2, shift=UP * 0.15),
             FadeOut(spatial_axes, shift=DOWN * 0.15),
             FadeOut(aligned_ellipsoid, shift=DOWN * 0.15),
+            FadeOut(ellipsoid_center_group, shift=DOWN * 0.15),
             FadeOut(VGroup(pos_vec, pos_label, rot_axis_label), shift=DOWN * 0.15),
             FadeOut(b2_card, shift=DOWN * 0.15),
             run_time=0.5,
@@ -449,7 +458,7 @@ class DatumExplainer(Scene):
 
         geocenter = np.array([-3.2, -0.3, 0.0])
         global_geoid = irregular_geoid_2d(geocenter, 4.8, 4.2, CLAY, 0.12)
-        geocentric_ellipsoid = smooth_ellipsoid_2d(geocenter, 5.0, 4.1, BLUE, fill_opacity=0.12)
+        geocentric_ellipsoid = smooth_ellipsoid_3d_vector(geocenter, 5.0, 4.1, BLUE, fill_opacity=0.12)
 
         geocentric_axes = make_spatial_axes_2d(geocenter, scale=2.3, color=BLUE)
 
