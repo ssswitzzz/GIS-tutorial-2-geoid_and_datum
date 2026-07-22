@@ -110,31 +110,25 @@ def make_spatial_axes_2d(
     x_dir = np.array([-0.866, -0.5, 0]) * scale
     y_dir = np.array([0.866, -0.5, 0]) * scale
 
-    # Isometric grid floor on XY plane for professional GIS 3D depth
     iso_grid = VGroup()
     grid_color = color
     for i in np.linspace(-1.2, 1.2, 7):
-        # Lines parallel to X direction
         p1 = origin + y_dir * i - x_dir * 1.2
         p2 = origin + y_dir * i + x_dir * 1.2
         iso_grid.add(Line(p1, p2, color=grid_color, stroke_width=1.0).set_opacity(0.18))
 
-        # Lines parallel to Y direction
         p3 = origin + x_dir * i - y_dir * 1.2
         p4 = origin + x_dir * i + y_dir * 1.2
         iso_grid.add(Line(p3, p4, color=grid_color, stroke_width=1.0).set_opacity(0.18))
 
-    # Sleek main axes with gradient tips
     z_axis = Arrow(origin, origin + z_dir, color=color, stroke_width=3.2, max_tip_length_to_length_ratio=0.15)
     x_axis = Arrow(origin, origin + x_dir, color=color, stroke_width=3.2, max_tip_length_to_length_ratio=0.15)
     y_axis = Arrow(origin, origin + y_dir, color=color, stroke_width=3.2, max_tip_length_to_length_ratio=0.15)
 
-    # LaTeX mathematical Labels
     z_lbl = latex(rf"Z_{{{label_prefix}}}" if label_prefix else r"Z", 22, color).next_to(z_axis.get_end(), RIGHT, buff=0.12)
     x_lbl = latex(rf"X_{{{label_prefix}}}" if label_prefix else r"X", 22, color).next_to(x_axis.get_end(), LEFT, buff=0.12)
     y_lbl = latex(rf"Y_{{{label_prefix}}}" if label_prefix else r"Y", 22, color).next_to(y_axis.get_end(), DR, buff=0.08)
 
-    # Origin marker with glowing double ring
     origin_dot = Dot(origin, radius=0.09, color=color)
     origin_ring = Circle(radius=0.18, stroke_color=color, stroke_width=1.5).set_opacity(0.6).move_to(origin)
     o_lbl = latex(rf"O_{{{label_prefix}}}" if label_prefix else r"O", 20, color).next_to(origin_ring, DL, buff=0.08)
@@ -301,7 +295,6 @@ class DatumExplainer(Scene):
         pos_vec = Arrow(pos_start, b2_origin, color=AMBER, stroke_width=3, max_tip_length_to_length_ratio=0.20)
         pos_label = latex(r"\mathbf{r}_0 (X_0, Y_0, Z_0)", 19, AMBER).next_to(pos_start, LEFT, buff=0.1)
 
-        # High-end Z-axis rotation label
         rot_axis_label = cn("椭球旋转轴 ∥ 地球自转轴", 16, CLAY).next_to(spatial_axes[4], RIGHT, buff=0.15)
 
         b2_card_item2 = VGroup(
@@ -349,14 +342,13 @@ class DatumExplainer(Scene):
         # =========================================================================
         # BEAT 3 (29.866s -> 61.633s / Subtitles 128-141):
         # 经典参心坐标系：寻找大地原点 (陕西省泾阳县永乐镇) ➔ 西安80参心坐标系
-        # VISUALLY PERFECT TANGENT CONTACT! Zero gap, zero intersection!
+        # VISUALLY 100% PERFECT TANGENT OVERLAP (SHIFTED LEFT & UP TO KISS THE STAR MARKER EXACTLY)!
         # =========================================================================
         header3 = self.top_header("03.1", "经典参心坐标系：西安80坐标系")
 
         geoid_center = np.array([-3.2, -0.3, 0.0])
         geoid_b3 = irregular_geoid_2d(geoid_center, 4.8, 4.2, CLAY, 0.14)
 
-        # Exact location of Geodetic Origin star marker on top-left geoid curve
         origin_th = 2.45
         origin_pt = geoid_curve_point(origin_th, geoid_center, 4.8, 4.2)
 
@@ -373,14 +365,13 @@ class DatumExplainer(Scene):
         origin_tag[1].move_to(origin_tag[0])
         origin_tag.move_to([-4.6, -1.8, 0])
 
-        # PERFECT VISUAL TANGENCY ALIGNMENT:
-        # Shift ref_center to [-2.42, -0.16, 0] so top-left arc of ref_ellipsoid touches origin_pt EXACTLY with zero gap & zero intersection!
-        ref_center = geoid_center + np.array([0.78, 0.14, 0])
+        # SHIFTED LEFT & UP SO THE TOP-LEFT EDGE OF REF_ELLIPSOID OVERLAPS AND TOUCHES TANGENT EXACTLY AT ORIGIN_PT!
+        ref_center = np.array([-2.98, 0.08, 0])
         ref_ellipsoid = smooth_ellipsoid_2d(ref_center, 5.0, 4.1, AMBER, fill_opacity=0.12)
         ref_spatial_axes = make_spatial_axes_2d(ref_center, scale=1.6, label_prefix="80", color=AMBER)
 
-        # Tangent highlight glow arc perfectly aligned along the shared contact curve at origin_pt
-        tangent_pts = [geoid_curve_point(th, geoid_center, 4.8, 4.2) for th in np.linspace(2.25, 2.65, 25)]
+        # Highlight green tangent glow curve right on the shared contact arc
+        tangent_pts = [geoid_curve_point(th, geoid_center, 4.8, 4.2) for th in np.linspace(2.28, 2.62, 25)]
         tangent_glow = VMobject(stroke_color=SAGE, stroke_width=7.5).set_opacity(0.95)
         tangent_glow.set_points_smoothly(tangent_pts)
 
