@@ -10,6 +10,7 @@
     "@remotion/lottie": "^4.0.484",
     "@remotion/tailwind-v4": "4.0.484",
     "@remotion/zod-types": "4.0.484",
+    "katex": "^0.18.1",
     "lottie-web": "^5.13.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",

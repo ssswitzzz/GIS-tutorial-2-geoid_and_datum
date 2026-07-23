@@ -41,9 +41,6 @@ Maintain an elegant, publication-ready Academic/Editorial paper visual style:
 4. **Color Syntax Constraint in Manim Community**:
    - **NEVER** pass `"rgba(r,g,b,a)"` strings to `fill_color` or `stroke_color` (triggers `ValueError: Color rgba not found`).
    - **Correct Pattern**: Pass hex string `fill_color="#315F6D"` and opacity as a separate parameter `fill_opacity=0.12`.
-5. **No Unnecessary English / Parenthetical Annotations**:
-   - Do NOT append gratuitous bracketed English translations or annotations to labels, titles, or legend text in Manim scenes (e.g. write `地心纬度 ψ` or `大地纬度 B`, NOT `地心纬度 (Geocentric Latitude)` or `法线 (Normal Line)`).
-   - Keep all text elements in clean, concise Chinese unless explicitly requested or when using standard LaTeX math variables.
 
 ---
 

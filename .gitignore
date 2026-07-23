@@ -22,3 +22,7 @@ node_modules/
 dist/
 .next/
 .DS_Store
+build/
+remotion-video/build/
+remotion-video/tmp-*.png
+*.bak
