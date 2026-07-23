@@ -867,16 +867,16 @@ const GravityModel: React.FC<{ opacity: number }> = ({ opacity }) => {
       <Header index="04.7" title="从大地高到海拔：重力场模型" color="#4f745d" />
 
       {/* Left Column */}
-      <div style={{ position: "absolute", left: 120, top: 135, width: 440, opacity: titleIn }}>
+      <div style={{ position: "absolute", left: 120, top: 170, width: 440, opacity: titleIn }}>
         <div style={{ fontFamily: SERIF, fontSize: 46, fontWeight: 700, lineHeight: 1.18, color: "#29342f" }}>
           设备后台翻查<br />
           <span style={{ color: "#4f745d" }}>全球重力场模型</span>
         </div>
-        <div style={{ fontFamily: SERIF, fontSize: 18, color: "#5d6964", marginTop: 12, lineHeight: 1.55 }}>
+        <div style={{ fontFamily: SERIF, fontSize: 18, color: "#5d6964", marginTop: 14, lineHeight: 1.55 }}>
           内置全球重力场模型记录各点的<b>高程异常值 <Latex math="\zeta" /></b>，自动修正后即可输出正常海拔。
         </div>
 
-        <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 18 }}>
           {steps.map((s) => {
             const p = inSpring(frame, s.from, fps);
             return (
@@ -887,30 +887,30 @@ const GravityModel: React.FC<{ opacity: number }> = ({ opacity }) => {
                   transform: `translateX(${interpolate(p, [0, 1], [-20, 0])}px)`,
                   display: "flex",
                   alignItems: "center",
-                  gap: 16,
-                  padding: "14px 18px",
-                  borderRadius: 8,
+                  gap: 18,
+                  padding: "18px 22px",
+                  borderRadius: 10,
                   background: "rgba(255,253,246,.95)",
                   border: `1.5px solid ${s.color}55`,
-                  boxShadow: "0 8px 24px rgba(41,52,47,.06)",
+                  boxShadow: "0 10px 28px rgba(41,52,47,.08)",
                 }}
               >
                 <div
                   style={{
-                    padding: "6px 10px",
-                    borderRadius: 4,
+                    padding: "7px 12px",
+                    borderRadius: 5,
                     background: s.color,
                     color: "#fffdf6",
                     fontFamily: MONO,
-                    fontSize: 16,
+                    fontSize: 17,
                     fontWeight: 700,
                   }}
                 >
                   {s.num}
                 </div>
                 <div>
-                  <div style={{ fontFamily: SERIF, fontSize: 19, color: "#29342f", fontWeight: 700 }}>{s.title}</div>
-                  <div style={{ fontFamily: SERIF, fontSize: 14, color: "#5d6964", marginTop: 2 }}>{s.desc}</div>
+                  <div style={{ fontFamily: SERIF, fontSize: 20, color: "#29342f", fontWeight: 700 }}>{s.title}</div>
+                  <div style={{ fontFamily: SERIF, fontSize: 15, color: "#5d6964", marginTop: 4 }}>{s.desc}</div>
                 </div>
               </div>
             );
@@ -918,34 +918,34 @@ const GravityModel: React.FC<{ opacity: number }> = ({ opacity }) => {
         </div>
       </div>
 
-      {/* Right Column */}
+      {/* Right Column - Expanded Grid Panel */}
       <div
         style={{
           position: "absolute",
           left: 600,
-          top: 135,
+          top: 170,
           right: 120,
-          height: 520,
-          padding: 24,
+          height: 600,
+          padding: 28,
           boxSizing: "border-box",
-          background: "rgba(255,253,246,.94)",
+          background: "rgba(255,253,246,.95)",
           border: "1.5px solid #4f745d66",
-          borderRadius: 10,
-          boxShadow: "0 20px 54px rgba(41,52,47,.12)",
+          borderRadius: 12,
+          boxShadow: "0 22px 60px rgba(41,52,47,.14)",
           opacity: scanIn,
           transform: `scale(${interpolate(scanIn, [0, 1], [0.96, 1])})`,
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div style={{ fontFamily: SERIF, color: "#4f745d", fontSize: 18, fontWeight: 700 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ fontFamily: SERIF, color: "#4f745d", fontSize: 20, fontWeight: 700 }}>
             全球重力场模型网格查询
           </div>
-          <div style={{ fontFamily: MONO, color: "#a77748", fontSize: 15, fontWeight: 700 }}>
+          <div style={{ fontFamily: MONO, color: "#a77748", fontSize: 16, fontWeight: 700 }}>
             当前位置: 东经 116.4°, 北纬 39.9°
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, height: 410, gap: 5, position: "relative" }}>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, height: 485, gap: 6, position: "relative" }}>
           {cells.map((cell) => {
             const isActive = cell.c === targetCol && cell.r === targetRow;
             const norm = (cell.val + 40) / 80;
