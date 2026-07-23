@@ -984,7 +984,7 @@ const SystemEquivalenceCard: React.FC<{ progress: number }> = ({ progress }) => 
           概念等价性
         </span>
         <h2 style={{ fontFamily: SERIF, fontSize: 48, fontWeight: 700, color: "#29342f", margin: 0 }}>
-          地理坐标系 <Latex math="\equiv" /> 大地坐标系
+          地理坐标系 <Latex math="\Leftrightarrow" /> 大地坐标系
         </h2>
       </div>
 
@@ -1038,15 +1038,15 @@ const SystemEquivalenceCard: React.FC<{ progress: number }> = ({ progress }) => 
               color: "#ffffff",
               display: "grid",
               placeItems: "center",
-              fontSize: 44,
+              fontSize: 42,
               fontWeight: 900,
               boxShadow: "0 18px 46px rgba(167, 119, 72, 0.38)",
             }}
           >
-            ≡
+            ⇄
           </div>
           <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 700, color: "#a77748" }}>
-            大多数情况下等价
+            通用对应与等价
           </span>
         </div>
 
