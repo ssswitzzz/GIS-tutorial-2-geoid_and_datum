@@ -701,19 +701,19 @@ const WhyGps: React.FC<{ opacity: number }> = ({ opacity }) => {
           position: "absolute",
           left: 120,
           top: 155,
-          width: 580,
+          width: 630,
           display: "flex",
           flexDirection: "column",
-          gap: 16,
+          gap: 18,
           zIndex: 10,
         }}
       >
         <div style={{ opacity: titleIn, transform: `translateY(${interpolate(titleIn, [0, 1], [-15, 0])}px)` }}>
-          <div style={{ fontFamily: SERIF, fontSize: 44, fontWeight: 700, lineHeight: 1.18, color: "#29342f" }}>
+          <div style={{ fontFamily: SERIF, fontSize: 46, fontWeight: 700, lineHeight: 1.18, color: "#29342f" }}>
             卫星定位需要<br />
             <span style={{ color: "#315f6d" }}>解析可算的参考面</span>
           </div>
-          <div style={{ fontFamily: SERIF, fontSize: 18, color: "#5d6964", marginTop: 12, lineHeight: 1.6 }}>
+          <div style={{ fontFamily: SERIF, fontSize: 19, color: "#5d6964", marginTop: 12, lineHeight: 1.6 }}>
             大地水准面由重力决定，凹凸不平，无统一封闭的数学公式；<br />
             旋转椭球面是标准几何体，拥有简洁的代数方程。
           </div>
@@ -722,24 +722,24 @@ const WhyGps: React.FC<{ opacity: number }> = ({ opacity }) => {
         {formulaIn > 0.02 && (
           <div
             style={{
-              marginTop: 28,
-              padding: "24px 26px",
-              borderRadius: 10,
-              background: "rgba(255,253,246,.96)",
-              border: "1.5px solid #315f6d77",
-              boxShadow: "0 18px 46px rgba(41,52,47,.12)",
+              marginTop: 24,
+              padding: "32px 36px",
+              borderRadius: 12,
+              background: "rgba(255,253,246,.97)",
+              border: "1.5px solid #315f6d88",
+              boxShadow: "0 22px 54px rgba(41,52,47,.15)",
               opacity: formulaIn,
               transform: `translateY(${interpolate(formulaIn, [0, 1], [20, 0])}px)`,
             }}
           >
-            <div style={{ fontFamily: MONO, color: "#315f6d", fontSize: 15, fontWeight: 700, letterSpacing: 1 }}>
+            <div style={{ fontFamily: MONO, color: "#315f6d", fontSize: 16, fontWeight: 700, letterSpacing: 1.5 }}>
               椭球面解析代数方程
             </div>
-            <div style={{ fontFamily: SERIF, fontSize: 26, color: "#29342f", fontWeight: 700, marginTop: 10 }}>
+            <div style={{ fontFamily: SERIF, fontSize: 34, color: "#29342f", fontWeight: 700, marginTop: 14, marginBottom: 8 }}>
               <Latex math="\frac{X^2+Y^2}{a^2} + \frac{Z^2}{b^2} = 1" />
             </div>
-            <div style={{ width: "100%", height: 1, background: "#315f6d33", margin: "14px 0" }} />
-            <div style={{ fontFamily: SERIF, fontSize: 17, color: "#5d6964", lineHeight: 1.6 }}>
+            <div style={{ width: "100%", height: 1, background: "#315f6d33", margin: "18px 0" }} />
+            <div style={{ fontFamily: SERIF, fontSize: 19, color: "#5d6964", lineHeight: 1.7 }}>
               卫星交会直接算得直角坐标 <Latex math="(X,Y,Z)" />，在旋转椭球面上可<b>直接无缝转换为大地坐标 <Latex math="(L, B, h)" /></b>。
             </div>
           </div>
