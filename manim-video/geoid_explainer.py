@@ -4,9 +4,7 @@ import math
 import numpy as np
 from manim import *
 
-config.pixel_width = 1920
-config.pixel_height = 1080
-config.frame_rate = 30
+# Resolution and frame_rate driven by manim.cfg (default 480p 15fps for fast preview)
 config.background_color = "#F9F4E9"
 
 CN_FONT = "Source Han Serif CN"
@@ -278,7 +276,7 @@ class GeoidExplainer(Scene):
         # 30.300s: Subtitles 46-49 ── Absolute Height (H) above Geoid
         # =========================================================================
         geoid_group = VGroup(closed, closed_inner, closed_rings, geoid_center_label, right_info_card)
-        section_title = self.section_mark("01.1", "绝对高程")
+        section_title = self.section_mark("01.1", "海拔/绝对高程")
         datum_curve = CubicBezier([-6.6, -1.75, 0], [-3.2, -1.45, 0], [2.8, -2.05, 0], [6.6, -1.62, 0]).set_stroke(BLUE, width=4.5)
         surface_curve = terrain_curve().scale(0.78).shift(UP * 0.55)
 
@@ -286,7 +284,7 @@ class GeoidExplainer(Scene):
         point_label = cn("地面点 P", 25, CLAY).next_to(point, UP, buff=0.14)
         plumb = DashedLine([2.25, -1.72, 0], [2.25, 1.52, 0], color=AMBER, dash_length=0.12, stroke_width=3)
         height_arrow = DoubleArrow([2.58, -1.72, 0], [2.58, 1.52, 0], buff=0, color=CLAY, stroke_width=4)
-        h_label = VGroup(latex("H", 48, CLAY), cn("绝对高程", 28, CLAY)).arrange(DOWN, buff=0.05).next_to(height_arrow, RIGHT, buff=0.2)
+        h_label = VGroup(latex("H", 48, CLAY), cn("海拔/绝对高程", 28, CLAY)).arrange(DOWN, buff=0.05).next_to(height_arrow, RIGHT, buff=0.2)
         datum_label = VGroup(cn("大地水准面", 25, BLUE), latex(r"W=W_0", 30, BLUE)).arrange(DOWN, buff=0.06).move_to([-4.6, -2.2, 0])
 
         self.cue(30.3, FadeOut(geoid_group), FadeIn(section_title), Create(surface_curve), Create(datum_curve), run_time=0.9)
