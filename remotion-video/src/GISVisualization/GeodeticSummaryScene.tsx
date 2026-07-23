@@ -112,26 +112,25 @@ const StepCard: React.FC<{
     <div
       style={{
         opacity: progress,
-        transform: `translateY(${interpolate(progress, [0, 1], [24, 0])}px) scale(${
-          isActive ? 1.04 : 1
-        })`,
+        transform: `translateY(${interpolate(progress, [0, 1], [24, 0])}px) scale(${isActive ? 1.04 : 1
+          })`,
         padding: "18px 22px",
         borderRadius: 10,
         background: isActive
           ? "rgba(255, 253, 246, 0.98)"
           : isComplete
-          ? "rgba(255, 253, 246, 0.9)"
-          : "rgba(255, 253, 246, 0.75)",
+            ? "rgba(255, 253, 246, 0.9)"
+            : "rgba(255, 253, 246, 0.75)",
         border: isActive
           ? `2.5px solid ${color}`
           : isComplete
-          ? `1.5px solid ${color}88`
-          : `1px solid ${color}44`,
+            ? `1.5px solid ${color}88`
+            : `1px solid ${color}44`,
         boxShadow: isActive
           ? `0 14px 38px ${color}33`
           : isComplete
-          ? "0 8px 24px rgba(41,52,47,.08)"
-          : "none",
+            ? "0 8px 24px rgba(41,52,47,.08)"
+            : "none",
         transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
         display: "flex",
         flexDirection: "column",
@@ -229,7 +228,7 @@ export const GeodeticSummaryScene: React.FC = () => {
   const cx = 1180;
   const cy = 540;
   const rx = 360;
-  const ry = 240;
+  const ry = 300;
 
   // ---------------------------------------------------------------------------
   // Precise Point P0 & Normal Vector Calculation on Meridian Curve

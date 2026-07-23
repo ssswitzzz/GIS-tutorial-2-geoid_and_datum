@@ -155,11 +155,11 @@ const CoordinateLift: React.FC<{ opacity: number }> = ({ opacity }) => {
   const cx = 1220;
   const cy = 650;
   const rx = 440;
-  const ry = 200;
+  const ry = 350;
 
   const t0 = 0.32;
   const p0x = (1 - t0) ** 2 * cx + 2 * (1 - t0) * t0 * (cx + 220) + t0 ** 2 * cx;
-  const p0y = (1 - t0) ** 2 * (cy - ry) + 2 * (1 - t0) * t0 * cy + t0 ** 2 * (cy + ry);
+  const p0y = (1 - t0) ** 2 * (cy - ry) + 2 * (1 - t0) * t0 * cy + t0 ** 2 * (cy + ry); // 542.0
 
   const normDx = 0.9298;
   const normDy = -0.3682;
@@ -659,9 +659,26 @@ const WhyGps: React.FC<{ opacity: number }> = ({ opacity }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const cardIn = inSpring(frame, 1380, fps);
   const waveIn = ramp(frame, 1510, 1620);
   const formulaIn = ramp(frame, 1650, 1750);
+  const titleIn = inSpring(frame, 1380, fps);
+
+  const bumpyGeoidPath = useMemo(() => {
+    const pts = [];
+    const count = 36;
+    const gCx = 1260;
+    const gCy = 650;
+    const gRx = 380;
+    const gRy = 250;
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      const rOffset = Math.sin(angle * 4) * 22 + Math.cos(angle * 6) * 16 + Math.sin(angle * 2) * 18;
+      const x = gCx + (gRx + rOffset) * Math.cos(angle);
+      const y = gCy + (gRy + rOffset * 0.6) * Math.sin(angle);
+      pts.push(`${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`);
+    }
+    return pts.join(" ") + " Z";
+  }, []);
 
   const sats = [
     { x: 860, y: 220, label: "SAT-1" },
@@ -673,18 +690,33 @@ const WhyGps: React.FC<{ opacity: number }> = ({ opacity }) => {
   const targetY = 560;
 
   return (
-    <AbsoluteFill style={{ opacity }}>
+    <AbsoluteFill style={{ opacity, overflow: "hidden" }}>
+      <PaperBackground tone="light" />
+
       <Header index="04.6" title="为什么 GPS 先得到大地高？" color="#315f6d" />
 
       {/* Left Column: Title & Formula Card */}
-      <div style={{ position: "absolute", left: 120, top: 140, width: 480, opacity: cardIn }}>
-        <div style={{ fontFamily: SERIF, fontSize: 48, fontWeight: 700, lineHeight: 1.18, color: "#29342f" }}>
-          卫星定位需要<br />
-          <span style={{ color: "#315f6d" }}>解析可算的参考面</span>
-        </div>
-        <div style={{ fontFamily: SERIF, fontSize: 19, color: "#5d6964", marginTop: 14, lineHeight: 1.6 }}>
-          大地水准面由重力决定，凹凸不平，<b>无统一封闭的数学公式</b>；<br />
-          旋转椭球面是标准几何体，拥有<b>简洁的代数方程</b>。
+      <div
+        style={{
+          position: "absolute",
+          left: 120,
+          top: 155,
+          width: 580,
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          zIndex: 10,
+        }}
+      >
+        <div style={{ opacity: titleIn, transform: `translateY(${interpolate(titleIn, [0, 1], [-15, 0])}px)` }}>
+          <div style={{ fontFamily: SERIF, fontSize: 44, fontWeight: 700, lineHeight: 1.18, color: "#29342f" }}>
+            卫星定位需要<br />
+            <span style={{ color: "#315f6d" }}>解析可算的参考面</span>
+          </div>
+          <div style={{ fontFamily: SERIF, fontSize: 18, color: "#5d6964", marginTop: 12, lineHeight: 1.6 }}>
+            大地水准面由重力决定，凹凸不平，无统一封闭的数学公式；<br />
+            旋转椭球面是标准几何体，拥有简洁的代数方程。
+          </div>
         </div>
 
         {formulaIn > 0.02 && (
@@ -722,20 +754,28 @@ const WhyGps: React.FC<{ opacity: number }> = ({ opacity }) => {
             <stop offset="70%" stopColor="#5f8c80" />
             <stop offset="100%" stopColor="#2a4d44" />
           </radialGradient>
+
+          <radialGradient id="bumpyGradGps" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#e8c9bd" />
+            <stop offset="70%" stopColor="#b57b6c" />
+            <stop offset="100%" stopColor="#63392f" />
+          </radialGradient>
         </defs>
 
-        <ellipse cx="1260" cy="650" rx="380" ry="190" fill="url(#satEarth3d)" stroke="#315f6d" strokeWidth="4" />
-        <ellipse cx="1260" cy="650" rx="380" ry="65" fill="none" stroke="#fffdf6" strokeWidth="2" strokeDasharray="8 6" opacity="0.6" />
+        {/* 1. Irregular 3D Bumpy Geoid Surface */}
+        <g opacity="0.95">
+          <path d={bumpyGeoidPath} fill="url(#bumpyGradGps)" stroke="#8f4e3e" strokeWidth="4.5" />
+          <path d="M 940 630 Q 1260 560 1580 640" fill="none" stroke="#fffdf6" strokeWidth="2.5" strokeDasharray="8 6" opacity="0.8" />
+          <path d="M 920 680 Q 1260 750 1600 670" fill="none" stroke="#fffdf6" strokeWidth="2" strokeDasharray="8 6" opacity="0.6" />
+        </g>
 
-        <path
-          d="M 880 650 C 960 590 1060 700 1160 620 C 1260 570 1380 690 1480 620 C 1560 580 1620 670 1640 650 C 1580 730 1440 670 1340 720 C 1220 770 1080 690 980 740 Z"
-          fill="rgba(143, 78, 62, 0.15)"
-          stroke="#8f4e3e"
-          strokeWidth="3.5"
-          strokeDasharray="8 6"
-          opacity="0.9"
-        />
+        {/* 2. Smooth Geometric Ellipsoid (Translucent Fitting Mesh Envelope) */}
+        <ellipse cx="1260" cy="650" rx="380" ry="250" fill="rgba(95, 140, 128, 0.4)" stroke="#315f6d" strokeWidth="4" />
+        <ellipse cx="1260" cy="650" rx="380" ry="85" fill="none" stroke="#fffdf6" strokeWidth="2.5" strokeDasharray="10 7" opacity="0.85" />
+        <ellipse cx="1260" cy="570" rx="335" ry="70" fill="none" stroke="#315f6d" strokeWidth="2" strokeDasharray="6 5" opacity="0.6" />
+        <path d="M 1260 400 Q 1060 650 1260 900" fill="none" stroke="#fffdf6" strokeWidth="2" strokeDasharray="8 6" opacity="0.7" />
 
+        {/* Satellite Orbits */}
         <ellipse cx="1260" cy="480" rx="660" ry="300" fill="none" stroke="#315f6d" strokeWidth="1.5" strokeDasharray="6 6" opacity="0.4" />
 
         {sats.map((s, i) => {
@@ -778,10 +818,10 @@ const WhyGps: React.FC<{ opacity: number }> = ({ opacity }) => {
         <circle cx={targetX} cy={targetY} r="10" fill="#f6d47f" stroke="#fffdf6" strokeWidth="3" />
       </svg>
 
-      <Tag x={1480} y={690} color="#8f4e3e" p={ramp(frame, 1440, 1480)}>
+      <Tag x={1440} y={540} color="#8f4e3e" p={ramp(frame, 1440, 1480)}>
         凹凸起伏的大地水准面
       </Tag>
-      <Tag x={1420} y={830} color="#315f6d" p={ramp(frame, 1480, 1520)}>
+      <Tag x={1420} y={840} color="#315f6d" p={ramp(frame, 1480, 1520)}>
         规则光滑的旋转椭球面
       </Tag>
     </AbsoluteFill>
@@ -912,10 +952,10 @@ const GravityModel: React.FC<{ opacity: number }> = ({ opacity }) => {
             const bg = isActive
               ? "#f4d17c"
               : norm > 0.6
-              ? "#729b86"
-              : norm < 0.35
-              ? "#557d8c"
-              : "#c2d8cd";
+                ? "#729b86"
+                : norm < 0.35
+                  ? "#557d8c"
+                  : "#c2d8cd";
 
             return (
               <div
