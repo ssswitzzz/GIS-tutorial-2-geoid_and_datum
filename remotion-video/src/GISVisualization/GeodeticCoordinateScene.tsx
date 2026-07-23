@@ -413,7 +413,7 @@ const CartesianExplanationCard: React.FC<{ opacity: number }> = ({ opacity }) =>
   );
 };
 
-// GNSS Satellite Constellation Graphic (Phase 2 Left Side)
+// GNSS Satellite Constellation Graphic (Phase 2 Left Side with Info Cards)
 const GNSSConstellationGraphic: React.FC<{ opacity: number }> = ({ opacity }) => {
   const frame = useCurrentFrame();
   const orbitRot = frame * 0.4;
@@ -422,84 +422,132 @@ const GNSSConstellationGraphic: React.FC<{ opacity: number }> = ({ opacity }) =>
     <div
       style={{
         position: "absolute",
-        left: 80,
-        top: 140,
-        width: 780,
+        left: 90,
+        top: 155,
+        width: 820,
         height: 780,
         opacity,
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        gap: 24,
+        zIndex: 20,
       }}
     >
-      <svg width="760" height="760" viewBox="0 0 760 760" style={{ overflow: "visible" }}>
-        <circle cx="380" cy="380" r="160" fill="url(#earthGlobe)" stroke="#315f6d" strokeWidth="2.5" />
-        <ellipse cx="380" cy="380" rx="160" ry="55" fill="none" stroke="rgba(49,95,109,0.35)" strokeDasharray="5 5" />
+      {/* Top Banner Intro & Explanation Card */}
+      <div
+        style={{
+          padding: "28px 34px",
+          borderRadius: 20,
+          background: "rgba(255, 253, 246, 0.96)",
+          border: "2px solid rgba(49, 95, 109, 0.28)",
+          boxShadow: "0 18px 46px rgba(41, 52, 47, 0.12)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <span
+            style={{
+              padding: "6px 16px",
+              borderRadius: 16,
+              background: "rgba(49, 95, 109, 0.14)",
+              color: "#315f6d",
+              fontFamily: SERIF,
+              fontSize: 16,
+              fontWeight: 700,
+            }}
+          >
+            定位原理
+          </span>
+          <span style={{ fontFamily: SERIF, fontSize: 32, fontWeight: 700, color: "#29342f" }}>
+            卫星定位与原生解算
+          </span>
+        </div>
+        <p style={{ fontFamily: SERIF, fontSize: 20, color: "#4a5953", lineHeight: 1.65, margin: 0 }}>
+          GNSS 卫星通过距离后方交会，在几何数学上最直接解算出的物理原生坐标是<b>地心三维直角坐标 <Latex math="(X, Y, Z)" /></b>。
+        </p>
 
-        <ellipse
-          cx="380"
-          cy="380"
-          rx="300"
-          ry="125"
-          fill="none"
-          stroke="rgba(167, 119, 72, 0.45)"
-          strokeWidth="2"
-          transform={`rotate(-25, 380, 380)`}
-        />
+        {/* 3 Step Indicator Badges */}
+        <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
+          <div style={{ padding: "8px 14px", borderRadius: 8, background: "#a7774818", border: "1.5px solid #a77748", color: "#a77748", fontFamily: SERIF, fontSize: 16, fontWeight: 700 }}>
+            ① 卫星多视后方交会
+          </div>
+          <div style={{ padding: "8px 14px", borderRadius: 8, background: "#8f4e3e18", border: "1.5px solid #8f4e3e", color: "#8f4e3e", fontFamily: SERIF, fontSize: 16, fontWeight: 700 }}>
+            ② 得原生坐标 <Latex math="(X,Y,Z)" />
+          </div>
+          <div style={{ padding: "8px 14px", borderRadius: 8, background: "#4f745d18", border: "1.5px solid #4f745d", color: "#4f745d", fontFamily: SERIF, fontSize: 16, fontWeight: 700 }}>
+            ③ 必须转换 <Latex math="(L,B,H)" />
+          </div>
+        </div>
+      </div>
 
-        <ellipse
-          cx="380"
-          cy="380"
-          rx="300"
-          ry="125"
-          fill="none"
-          stroke="rgba(49, 95, 109, 0.45)"
-          strokeWidth="2"
-          transform={`rotate(40, 380, 380)`}
-        />
+      {/* SVG Satellites Illustration */}
+      <div style={{ width: "100%", height: 500, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <svg width="720" height="500" viewBox="0 0 720 500" style={{ overflow: "visible" }}>
+          <circle cx="360" cy="250" r="140" fill="url(#earthGlobe)" stroke="#315f6d" strokeWidth="2.5" />
+          <ellipse cx="360" cy="250" rx="140" ry="50" fill="none" stroke="rgba(49,95,109,0.35)" strokeDasharray="5 5" />
 
-        <g transform={`rotate(${orbitRot}, 380, 380) translate(680, 380)`}>
-          <rect x="-16" y="-12" width="32" height="24" rx="4" fill="#1e2623" stroke="#a77748" strokeWidth="2.5" />
-          <line x1="-34" y1="0" x2="-16" y2="0" stroke="#a77748" strokeWidth="3.5" />
-          <line x1="16" y1="0" x2="34" y2="0" stroke="#a77748" strokeWidth="3.5" />
-        </g>
+          <ellipse
+            cx="360"
+            cy="250"
+            rx="270"
+            ry="110"
+            fill="none"
+            stroke="rgba(167, 119, 72, 0.45)"
+            strokeWidth="2"
+            transform={`rotate(-25, 360, 250)`}
+          />
 
-        <g transform={`rotate(${orbitRot + 120}, 380, 380) translate(680, 380)`}>
-          <rect x="-16" y="-12" width="32" height="24" rx="4" fill="#1e2623" stroke="#315f6d" strokeWidth="2.5" />
-          <line x1="-34" y1="0" x2="-16" y2="0" stroke="#315f6d" strokeWidth="3.5" />
-          <line x1="16" y1="0" x2="34" y2="0" stroke="#315f6d" strokeWidth="3.5" />
-        </g>
+          <ellipse
+            cx="360"
+            cy="250"
+            rx="270"
+            ry="110"
+            fill="none"
+            stroke="rgba(49, 95, 109, 0.45)"
+            strokeWidth="2"
+            transform={`rotate(40, 360, 250)`}
+          />
 
-        <g transform={`rotate(${orbitRot + 240}, 380, 380) translate(680, 380)`}>
-          <rect x="-16" y="-12" width="32" height="24" rx="4" fill="#1e2623" stroke="#4f745d" strokeWidth="2.5" />
-          <line x1="-34" y1="0" x2="-16" y2="0" stroke="#4f745d" strokeWidth="3.5" />
-          <line x1="16" y1="0" x2="34" y2="0" stroke="#4f745d" strokeWidth="3.5" />
-        </g>
+          <g transform={`rotate(${orbitRot}, 360, 250) translate(630, 250)`}>
+            <rect x="-16" y="-12" width="32" height="24" rx="4" fill="#1e2623" stroke="#a77748" strokeWidth="2.5" />
+            <line x1="-34" y1="0" x2="-16" y2="0" stroke="#a77748" strokeWidth="3.5" />
+            <line x1="16" y1="0" x2="34" y2="0" stroke="#a77748" strokeWidth="3.5" />
+          </g>
 
-        <text x="380" y="386" textAnchor="middle" fontFamily={SERIF} fontSize="24" fontWeight="bold" fill="#e3f0eaff">
-          卫星定位信号 (GNSS)
-        </text>
+          <g transform={`rotate(${orbitRot + 120}, 360, 250) translate(630, 250)`}>
+            <rect x="-16" y="-12" width="32" height="24" rx="4" fill="#1e2623" stroke="#315f6d" strokeWidth="2.5" />
+            <line x1="-34" y1="0" x2="-16" y2="0" stroke="#315f6d" strokeWidth="3.5" />
+            <line x1="16" y1="0" x2="34" y2="0" stroke="#315f6d" strokeWidth="3.5" />
+          </g>
 
-        <defs>
-          <radialGradient id="earthGlobe" cx="40%" cy="40%" r="60%">
-            <stop offset="0%" stopColor="#7693a0" />
-            <stop offset="70%" stopColor="#315f6d" />
-            <stop offset="100%" stopColor="#172b33" />
-          </radialGradient>
-        </defs>
-      </svg>
+          <g transform={`rotate(${orbitRot + 240}, 360, 250) translate(630, 250)`}>
+            <rect x="-16" y="-12" width="32" height="24" rx="4" fill="#1e2623" stroke="#4f745d" strokeWidth="2.5" />
+            <line x1="-34" y1="0" x2="-16" y2="0" stroke="#4f745d" strokeWidth="3.5" />
+            <line x1="16" y1="0" x2="34" y2="0" stroke="#4f745d" strokeWidth="3.5" />
+          </g>
+
+          <text x="360" y="256" textAnchor="middle" fontFamily={SERIF} fontSize="22" fontWeight="bold" fill="#e3f0eaff">
+            卫星定位信号 (GNSS)
+          </text>
+
+          <defs>
+            <radialGradient id="earthGlobe" cx="40%" cy="40%" r="60%">
+              <stop offset="0%" stopColor="#7693a0" />
+              <stop offset="70%" stopColor="#315f6d" />
+              <stop offset="100%" stopColor="#172b33" />
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
     </div>
   );
 };
 
-// Smartphone Navigation (Phase 2 Right Side)
+// Smartphone Navigation (Phase 2 Right Side - Red Badge Completely Removed)
 const SmartphoneNavigationJoke: React.FC<{ progress: number }> = ({ progress }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const jokeEntrance = enterSpring(frame, 520, fps, 14, 110);
-  const shake = jokeEntrance > 0.1 ? Math.sin(frame * 0.6) * (1 - jokeEntrance) * 8 : 0;
 
   return (
     <div
@@ -510,7 +558,6 @@ const SmartphoneNavigationJoke: React.FC<{ progress: number }> = ({ progress }) 
         width: 760,
         height: 800,
         opacity: progress,
-        transform: `translateY(${shake}px)`,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -639,42 +686,6 @@ const SmartphoneNavigationJoke: React.FC<{ progress: number }> = ({ progress }) 
             </div>
           </div>
         </div>
-
-        {/* Reaction Badge (Replaced colloquial text with professional notice) */}
-        {jokeEntrance > 0.01 && (
-          <div
-            style={{
-              position: "absolute",
-              top: 290,
-              left: -45,
-              right: -45,
-              transform: `scale(${jokeEntrance}) rotate(-3deg)`,
-              opacity: jokeEntrance,
-              padding: "18px 26px",
-              borderRadius: 22,
-              background: "linear-gradient(135deg, #8f4e3e 0%, #b84c36 100%)",
-              color: "#ffffff",
-              boxShadow: "0 24px 60px rgba(143, 78, 62, 0.45)",
-              border: "3px solid #ffffff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 14,
-              zIndex: 40,
-            }}
-          >
-            <div style={{ width: 46, height: 46, overflow: "hidden", borderRadius: "50%" }}>
-              <OffthreadVideo
-                src={staticFile("warning.webm")}
-                muted
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
-            <span style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 900, letterSpacing: "0.03em" }}>
-              直角坐标非直观，需转换地理坐标系！
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );
