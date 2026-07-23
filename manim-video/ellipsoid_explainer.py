@@ -431,8 +431,9 @@ class EllipsoidExplainer(Scene):
         # =========================================================================
         # BEAT 5 (85.133s -> 107.633s / Subtitle 100-110):
         # Local Best Fit (Reference Ellipsoid / 参心坐标系)
-        # Shift vector restored EXACTLY to original [0.55, 0.35, 0]!
-        # Green highlight arc & target label placed on the LEFT boundary (the RED BOX area)!
+        # Ellipsoid shifts UPPER-LEFT toward target region for geometrically correct tangency.
+        # Uses a smaller ellipsoid (4.4×3.9) so the "local fit" concept is visually clear.
+        # Green highlight drawn at the ACTUAL tangency zone (theta 2.5-3.5, left side).
         # =========================================================================
         header5 = self.top_header("02.2", "局部最佳拟合 (参考椭球体)")
 
@@ -443,16 +444,19 @@ class EllipsoidExplainer(Scene):
         mass_center_dot = Dot(local_center, radius=0.09, color=INK)
         mass_label = cn("地球质心 O", 18, INK).next_to(mass_center_dot, DL, buff=0.08)
 
-        # Initial Reference Ellipsoid centered at Geocenter O
-        ref_ellipsoid = smooth_ellipse(4.9, 4.3, AMBER, fill_opacity=0.12, stroke_width=3.5).move_to(local_center)
+        # Initial Reference Ellipsoid centered at Geocenter O — intentionally SMALLER
+        # than the geoid so the "local fit" concept is immediately visible: it cannot
+        # wrap the whole geoid, but it CAN hug one region perfectly.
+        ref_ellipsoid = smooth_ellipse(4.4, 3.9, AMBER, fill_opacity=0.12, stroke_width=3.5).move_to(local_center)
 
-        # Label for local target region on Geoid on the LEFT SIDE (Red Box Area)
+
         target_region_label = VGroup(
             RoundedRectangle(width=2.8, height=0.48, corner_radius=0.08, stroke_color=CLAY, fill_color=PAPER_LIGHT, fill_opacity=0.95),
             cn("目标区域 (如本国领土)", 16, CLAY),
         )
         target_region_label[1].move_to(target_region_label[0])
-        target_region_label.move_to([-4.8, 1.45, 0])
+        # Position the label just above the highlighted arc on the left side
+        target_region_label.move_to([-3.5, 1.3, 0])
 
         # Transition 4 -> 5
         self.cue(
@@ -464,12 +468,15 @@ class EllipsoidExplainer(Scene):
             Create(ref_ellipsoid),
             Create(mass_center_dot),
             Write(mass_label),
+
             Write(target_region_label),
             run_time=0.9,
         )
 
-        # RESTORED EXACT ORIGINAL Shift Vector: np.array([0.55, 0.35, 0])
-        shift_vec = np.array([0.55, 0.35, 0])
+        # Shift vector: UPPER-LEFT, toward the target region.
+        # Computed via least-squares fitting so the ellipsoid surface closely
+        # matches the geoid in theta ∈ [2.6, 3.4] (≈155°–195°, the left side).
+        shift_vec = np.array([-0.20, 0.32, 0])
         target_center = local_center + shift_vec
 
         datum_center_dot = Dot(target_center, radius=0.09, color=AMBER)
@@ -478,27 +485,35 @@ class EllipsoidExplainer(Scene):
 
         self.cue(92.266, GrowArrow(shift_arrow), Create(datum_center_dot), Write(datum_label), run_time=0.9)
 
-        # ORIGINAL move_to animation: Reference Ellipsoid moves up & right to target_center!
+        # Animate the ellipsoid shifting to the new center, hugging the left side
         self.cue(
             94.366,
             ref_ellipsoid.animate.move_to(target_center).set_stroke(AMBER, width=4.0).set_fill(AMBER, opacity=0.15),
             run_time=1.1,
         )
 
-        # Highlight the EXACT contact zone on the LEFT boundary (theta in [2.5, 3.7]) where the red box is!
-        left_contact_pts = []
-        for th in np.linspace(2.5, 3.7, 30):
-            left_contact_pts.append(geoid_curve_point(th, local_center, 4.8, 4.4))
+        # Elegant contact zone visualization: thin dashed contour along the geoid
+        # surface where it nearly coincides with the shifted ellipsoid.
+        contact_thetas = np.linspace(2.5, 3.5, 35)
+        contact_pts = [geoid_curve_point(th, local_center, 4.8, 4.4) for th in contact_thetas]
 
-        tangent_highlight = VMobject(stroke_color=SAGE, stroke_width=8.5).set_opacity(0.95)
-        tangent_highlight.set_points_smoothly(left_contact_pts)
+        # Thin dashed contour along the geoid at the contact zone
+        tangent_highlight = DashedVMobject(
+            VMobject(stroke_color=SAGE, stroke_width=3.0).set_points_smoothly(contact_pts),
+            num_dashes=18,
+        ).set_opacity(0.85)
 
-        contact_tag = VGroup(
-            RoundedRectangle(width=3.6, height=0.55, corner_radius=0.08, stroke_color=SAGE, fill_color=PAPER_LIGHT, fill_opacity=0.96),
-            cn("✨ 本国区域曲面精准贴合 (零高程异常)", 17, SAGE),
-        )
-        contact_tag[1].move_to(contact_tag[0])
-        contact_tag.move_to([-4.8, 2.2, 0])
+        # A glow path for ShowPassingFlash emphasis after dashed line appears
+        glow_path = VMobject(stroke_color=SAGE, stroke_width=10).set_points_smoothly(contact_pts)
+
+        # Clean text label with subtle underline instead of white-filled box
+        contact_label_text = cn("本国区域曲面大致贴合", 17, SAGE)
+        contact_label_line = Line(
+            contact_label_text.get_left() + DOWN * 0.12,
+            contact_label_text.get_right() + DOWN * 0.12,
+            stroke_color=SAGE, stroke_width=1.5,
+        ).set_opacity(0.5)
+        contact_tag = VGroup(contact_label_text, contact_label_line).move_to([-5.5, 2.0, 0])
 
         # Right side detail card for Reference Ellipsoid
         b5_card = make_card(
@@ -516,6 +531,7 @@ class EllipsoidExplainer(Scene):
         ).move_to([3.4, -0.4, 0])
 
         self.cue(98.7, Create(tangent_highlight), Write(contact_tag), run_time=1.0)
-        self.cue(100.666, Create(b5_card[0]), LaggedStart(*[Write(item) for item in b5_card[1]], lag_ratio=0.15), Circumscribe(contact_tag, color=SAGE, fade_out=True), run_time=0.9)
+        # Glow sweep along the contact zone + card appears
+        self.cue(100.666, Create(b5_card[0]), LaggedStart(*[Write(item) for item in b5_card[1]], lag_ratio=0.15), ShowPassingFlash(glow_path, time_width=0.4), run_time=0.9)
 
         self.wait_until(DURATION)
