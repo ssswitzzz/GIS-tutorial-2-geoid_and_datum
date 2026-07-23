@@ -5,6 +5,7 @@ import { EarthApproximationScene } from "./GISVisualization/EarthApproximationSc
 import { GeodeticCoordinateScene } from "./GISVisualization/GeodeticCoordinateScene";
 import { GeodeticElementsScene } from "./GISVisualization/GeodeticElementsScene";
 import { GeodeticHeightScene } from "./GISVisualization/GeodeticHeightScene";
+import { GeodeticSummaryScene } from "./GISVisualization/GeodeticSummaryScene";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -45,6 +46,14 @@ export const RemotionRoot: React.FC = () => {
         id="GeodeticHeightScene"
         component={GeodeticHeightScene}
         durationInFrames={2742}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="GeodeticSummaryScene"
+        component={GeodeticSummaryScene}
+        durationInFrames={1140}
         fps={30}
         width={1920}
         height={1080}
