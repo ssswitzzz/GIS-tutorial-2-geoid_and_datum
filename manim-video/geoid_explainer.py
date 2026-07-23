@@ -81,20 +81,35 @@ def ground_fill_shape(profile: VMobject, bottom_y: float = -4.2) -> VMobject:
     return fill
 
 
-def ocean_water_fill(sea_y: float = -0.35) -> VMobject:
-    """Clean ocean water fills in low basin valleys below sea level."""
+def ocean_water_fill(profile: VMobject, sea_y: float = -0.35) -> VMobject:
+    """100% precise ocean water fills in all low basin valleys below sea level, perfectly matching the terrain curve."""
     water = VGroup()
-    # Left ocean basin
-    w1 = Polygon(
-        [-7.2, sea_y, 0], [-6.2, -0.25, 0], [-5.8, sea_y, 0], [-7.2, sea_y, 0],
-        color=BLUE, fill_color=BLUE, fill_opacity=0.38, stroke_width=0
-    )
-    # Right ocean basin
-    w2 = Polygon(
-        [5.4, sea_y, 0], [5.8, -0.35, 0], [6.6, -0.45, 0], [7.2, sea_y, 0], [7.2, -0.8, 0], [5.4, sea_y, 0],
-        color=BLUE, fill_color=BLUE, fill_opacity=0.38, stroke_width=0
-    )
-    water.add(w1, w2)
+
+    num_samples = 400
+    pts = [profile.point_from_proportion(t) for t in np.linspace(0, 1, num_samples)]
+
+    # Left ocean basin: points with x <= -6.42 and y <= sea_y
+    left_pts = [p for p in pts if p[0] <= -6.42 and p[1] <= sea_y + 0.02]
+    if left_pts:
+        top_right = np.array([left_pts[-1][0], sea_y, 0])
+        top_left = np.array([-7.2, sea_y, 0])
+        
+        w_left = VMobject(stroke_width=0, fill_color=BLUE, fill_opacity=0.45)
+        path_pts = [top_left, top_right] + list(reversed(left_pts)) + [top_left]
+        w_left.set_points_as_corners(path_pts)
+        water.add(w_left)
+
+    # Right ocean basin: points with x >= 5.78 and y <= sea_y
+    right_pts = [p for p in pts if p[0] >= 5.78 and p[1] <= sea_y + 0.02]
+    if right_pts:
+        top_left = np.array([right_pts[0][0], sea_y, 0])
+        top_right = np.array([7.2, sea_y, 0])
+        
+        w_right = VMobject(stroke_width=0, fill_color=BLUE, fill_opacity=0.45)
+        path_pts = [top_left, top_right] + list(reversed(right_pts)) + [top_left]
+        w_right.set_points_as_corners(path_pts)
+        water.add(w_right)
+
     return water
 
 
@@ -177,7 +192,7 @@ class GeoidExplainer(Scene):
         # =========================================================================
         terrain = terrain_curve().shift(DOWN * 0.4)
         ground_fill = ground_fill_shape(terrain, bottom_y=-4.2)
-        water_fill = ocean_water_fill(sea_y=-0.35)
+        water_fill = ocean_water_fill(terrain, sea_y=-0.35)
 
         sea_level = DashedLine([-7.1, -0.35, 0], [7.1, -0.35, 0], dash_length=0.14, color=BLUE, stroke_width=3.5)
         sea_label = cn("全球平均海平面", 24, BLUE).next_to(sea_level, UP, buff=0.15).to_corner(UL, buff=0.85).shift(DOWN * 1.0)

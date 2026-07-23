@@ -773,7 +773,6 @@ export const OpeningSceneElevation: React.FC = () => {
               {typedThesis}
             </div>
             <div style={{ fontSize: 76, lineHeight: 1.12, fontWeight: 700, whiteSpace: "nowrap" }}>
-              为了解决这个疑惑，今天这个视频
             </div>
           </div>
 
