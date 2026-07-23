@@ -209,14 +209,7 @@ export const GeodeticSummaryScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Timeline Phase Delays (Total Duration: 1140 frames @ 30fps)
-  // Phase 0: 0 ~ 110 (Intro)
-  // Phase 1: 110 ~ 350 (Geoid / Physical Approximation)
-  // Phase 2: 350 ~ 580 (Ellipsoid / Geometric Approximation)
-  // Phase 3: 580 ~ 780 (Datum / Orientation & Positioning)
-  // Phase 4: 780 ~ 950 (Geodetic Coordinate System / (L,B,h))
-  // Phase 5: 950 ~ 1140 (Final Unified GCS Synthesis)
-
+  // Timeline Progress Ramps
   const p1 = ramp(frame, 60, 120);
   const p2 = ramp(frame, 330, 390);
   const p3 = ramp(frame, 560, 620);
@@ -229,19 +222,55 @@ export const GeodeticSummaryScene: React.FC = () => {
   const isPhase3Active = frame >= 570 && frame < 770;
   const isPhase4Active = frame >= 770 && frame < 940;
 
-  // Geometry parameters for Central Earth/Ellipsoid Model
+  // Model Center & Ellipsoid Geometry
   const cx = 1180;
   const cy = 540;
   const rx = 380;
   const ry = 190;
 
-  // Key summary steps data
+  // ---------------------------------------------------------------------------
+  // Precise Point P0 & Normal Vector Calculation on Meridian Curve
+  // Meridian Bezier: P_start(cx, cy-ry), P_ctrl(cx+220, cy), P_end(cx, cy+ry)
+  // ---------------------------------------------------------------------------
+  const t0 = 0.35;
+  const p0x = (1 - t0) ** 2 * cx + 2 * (1 - t0) * t0 * (cx + 220) + t0 ** 2 * cx; // 1279.5
+  const p0y = (1 - t0) ** 2 * (cy - ry) + 2 * (1 - t0) * t0 * cy + t0 ** 2 * (cy + ry); // 459.75
+
+  // Tangent at t0: dx/dt = 2(1-t)(220) + 2t(-220) = 440(1-2t) = 132
+  // dy/dt = 2(1-t)(ry) + 2t(ry) = 2*ry = 380
+  // Normal vector: (380, -132) -> Unit Vector: (0.944, -0.328)
+  const normDx = 0.944;
+  const normDy = -0.328;
+  const hLength = 160;
+
+  // Elevated Spatial Point P
+  const px = p0x + hLength * normDx; // 1430.5
+  const py = p0y + hLength * normDy; // 407.3
+
+  // ---------------------------------------------------------------------------
+  // Irregular 3D Bumpy Geoid / Terrain Shape Generator for Step 1
+  // -----------------------------------------------------------------------------
+  const bumpyPoints = useMemo(() => {
+    const pts = [];
+    const count = 36;
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      // Irregular radius perturbation
+      const rOffset = Math.sin(angle * 4) * 22 + Math.cos(angle * 7) * 14 + Math.sin(angle * 2) * 18;
+      const x = cx + (rx + rOffset) * Math.cos(angle);
+      const y = cy + (ry + rOffset * 0.5) * Math.sin(angle);
+      pts.push(`${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`);
+    }
+    return pts.join(" ") + " Z";
+  }, [cx, cy, rx, ry]);
+
+  // Steps Information
   const steps = [
     {
       num: "STEP 01",
       title: "物理逼近",
       sub: "真实坑洼地球 ➔ 大地水准面",
-      highlight: "确立统一的海拔基准 (H)",
+      highlight: "确立统一的海拔基准",
       color: "#8f4e3e",
       from: 60,
       active: isPhase1Active,
@@ -263,7 +292,7 @@ export const GeodeticSummaryScene: React.FC = () => {
       num: "STEP 03",
       title: "定位定向",
       sub: "抽象椭球 ➔ 大地基准面",
-      highlight: "确立坐标原点 (WGS84/CGCS2000)",
+      highlight: "确立坐标原点与方向",
       color: "#a77748",
       from: 560,
       active: isPhase3Active,
@@ -274,7 +303,7 @@ export const GeodeticSummaryScene: React.FC = () => {
       num: "STEP 04",
       title: "坐标绑定",
       sub: "参数三要素 ➔ 大地坐标系",
-      highlight: "绑定经度 L、纬度 B、大地高 h",
+      highlight: "绑定经度、纬度、大地高",
       color: "#4f745d",
       from: 760,
       active: isPhase4Active,
@@ -344,8 +373,14 @@ export const GeodeticSummaryScene: React.FC = () => {
             <stop offset="100%" stopColor="#2c4f46" />
           </radialGradient>
 
+          <radialGradient id="bumpyGrad" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#e8c9bd" />
+            <stop offset="70%" stopColor="#b57b6c" />
+            <stop offset="100%" stopColor="#63392f" />
+          </radialGradient>
+
           <radialGradient id="finalGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#f4d17c" stopOpacity="0.4" />
+            <stop offset="0%" stopColor="#f4d17c" stopOpacity="0.45" />
             <stop offset="100%" stopColor="#f4d17c" stopOpacity="0" />
           </radialGradient>
         </defs>
@@ -362,46 +397,58 @@ export const GeodeticSummaryScene: React.FC = () => {
           />
         )}
 
-        {/* Phase 0 & 1: Irregular Terrain Ground (Physical Earth) */}
+        {/* Base Ellipsoid Shadow */}
         <ellipse cx={cx} cy={cy + 40} rx={rx + 15} ry={ry + 10} fill="rgba(41,52,47,.08)" filter="blur(18px)" />
 
-        <ellipse
-          cx={cx}
-          cy={cy}
-          rx={rx}
-          ry={ry}
-          fill="url(#sumEarthGrad)"
-          stroke="#315f6d"
-          strokeWidth="4"
-          opacity={ramp(frame, 20, 80)}
-        />
+        {/* -------------------------------------------------------------------
+            Step 1: Irregular 3D Bumpy Geoid Surface (Physical Approximation)
+           ------------------------------------------------------------------- */}
+        {frame < 390 && (
+          <g opacity={frame >= 340 ? interpolate(frame, [340, 390], [1, 0], clamp) : ramp(frame, 20, 80)}>
+            {/* 3D Bumpy Contour Body */}
+            <path d={bumpyPoints} fill="url(#bumpyGrad)" stroke="#8f4e3e" strokeWidth="4.5" />
 
-        {/* Phase 1: Wavy Geoid Surface overlay */}
-        {p1 > 0.01 && (
-          <path
-            d={`M ${cx - rx} ${cy} C ${cx - rx * 0.5} ${cy - 40} ${cx - rx * 0.2} ${cy + 50} ${cx} ${cy - 20} C ${cx + rx * 0.3} ${cy - 60} ${cx + rx * 0.7} ${cy + 40} ${cx + rx} ${cy}`}
-            fill="none"
-            stroke="#8f4e3e"
-            strokeWidth="4"
-            strokeDasharray="9 7"
-            opacity={p1 * (frame >= 340 ? 0.4 : 1)}
-          />
+            {/* Inner Topographical Contour Lines */}
+            <path
+              d={`M ${cx - rx * 0.7} ${cy - 20} Q ${cx} ${cy - 70} ${cx + rx * 0.7} ${cy - 10}`}
+              fill="none"
+              stroke="#fffdf6"
+              strokeWidth="2"
+              strokeDasharray="8 6"
+              opacity="0.75"
+            />
+            <path
+              d={`M ${cx - rx * 0.8} ${cy + 30} Q ${cx} ${cy + 80} ${cx + rx * 0.8} ${cy + 40}`}
+              fill="none"
+              stroke="#fffdf6"
+              strokeWidth="2"
+              strokeDasharray="8 6"
+              opacity="0.6"
+            />
+          </g>
         )}
 
-        {/* Phase 2: Smooth Geometric Ellipsoid Meridians & Parallels */}
+        {/* -------------------------------------------------------------------
+            Step 2: Smooth Geometric Ellipsoid (Geometric Approximation)
+           ------------------------------------------------------------------- */}
         {p2 > 0.01 && (
           <g opacity={p2}>
-            {/* Equator */}
-            <ellipse cx={cx} cy={cy} rx={rx} ry={ry * 0.42} fill="none" stroke="#fffdf6" strokeWidth="2.5" strokeDasharray="10 7" opacity="0.8" />
-            {/* Parallels */}
+            {/* Smooth Teal Ellipsoid Body */}
+            <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="url(#sumEarthGrad)" stroke="#315f6d" strokeWidth="4" />
+
+            {/* Equator & Latitude Parallels */}
+            <ellipse cx={cx} cy={cy} rx={rx} ry={ry * 0.42} fill="none" stroke="#fffdf6" strokeWidth="2.5" strokeDasharray="10 7" opacity="0.85" />
             <ellipse cx={cx} cy={cy - 60} rx={rx * 0.88} ry={ry * 0.36} fill="none" stroke="#315f6d" strokeWidth="2" strokeDasharray="6 5" opacity="0.6" />
             <ellipse cx={cx} cy={cy + 60} rx={rx * 0.88} ry={ry * 0.36} fill="none" stroke="#fffdf6" strokeWidth="1.5" strokeDasharray="6 5" opacity="0.4" />
-            {/* Central Prime Meridian */}
+
+            {/* Prime Meridian */}
             <path d={`M ${cx} ${cy - ry} Q ${cx - 220} ${cy} ${cx} ${cy + ry}`} fill="none" stroke="#fffdf6" strokeWidth="2" strokeDasharray="8 6" opacity="0.7" />
           </g>
         )}
 
-        {/* Phase 3: Datum Axes & Origin O (0,0,0) */}
+        {/* -------------------------------------------------------------------
+            Step 3: Datum Positioning & Coordinate Origin O (0,0,0)
+           ------------------------------------------------------------------- */}
         {p3 > 0.01 && (
           <g opacity={p3}>
             {/* X, Y, Z Coordinate Axes */}
@@ -410,27 +457,40 @@ export const GeodeticSummaryScene: React.FC = () => {
             <line x1={cx} y1={cy} x2={cx - rx * 0.6} y2={cy + ry * 0.8} stroke="#a77748" strokeWidth="3" strokeDasharray="6 4" />
 
             {/* Origin Point O */}
-            <circle cx={cx} cy={cy} r="8" fill="#f4d17c" stroke="#fffdf6" strokeWidth="3" />
-            <text x={cx - 28} y={cy - 12} fontFamily={SERIF} fontSize="20" fontWeight="bold" fill="#a77748">
+            <circle cx={cx} cy={cy} r="8.5" fill="#f4d17c" stroke="#fffdf6" strokeWidth="3" />
+            <text x={cx - 28} y={cy - 14} fontFamily={SERIF} fontSize="20" fontWeight="bold" fill="#a77748">
               O (0,0,0)
             </text>
           </g>
         )}
 
-        {/* Phase 4: Geodetic (L, B, h) Parameters Vector */}
+        {/* -------------------------------------------------------------------
+            Step 4: Precision Geodetic Parameters (L, B, h) Vector Binding
+            - Point P0 is EXACTLY ON the Meridian Bezier Curve!
+           ------------------------------------------------------------------- */}
         {p4 > 0.01 && (
           <g opacity={p4}>
-            {/* Target Meridian Curve L */}
-            <path d={`M ${cx} ${cy - ry} Q ${cx + 200} ${cy} ${cx} ${cy + ry}`} fill="none" stroke="#a77748" strokeWidth="3.5" strokeDasharray="9 6" />
+            {/* Target Meridian Curve L: Passing EXACTLY through P0(1279.5, 459.75) */}
+            <path d={`M ${cx} ${cy - ry} Q ${cx + 220} ${cy} ${cx} ${cy + ry}`} fill="none" stroke="#a77748" strokeWidth="3.5" strokeDasharray="9 6" />
 
-            {/* Normal Vector Line for h */}
-            <line x1={cx + 140} y1={cy - 40} x2={cx + 250} y2={cy - 140} stroke="#4f745d" strokeWidth="4" strokeDasharray="8 5" />
-            <circle cx={cx + 140} cy={cy - 40} r="7" fill="#a77748" stroke="#fffdf6" strokeWidth="2.5" />
-            <circle cx={cx + 250} cy={cy - 140} r="10" fill="#f4d17c" stroke="#fffdf6" strokeWidth="3" />
+            {/* Target Latitude Curve B: Passing EXACTLY through P0(1279.5, 459.75) */}
+            <path d={`M ${cx - rx * 0.86} ${p0y} Q ${cx} ${p0y + 35} ${cx + rx * 0.86} ${p0y}`} fill="none" stroke="#315f6d" strokeWidth="3" opacity="0.85" />
+
+            {/* Ellipsoid Normal Vector Line for h starting at P0 */}
+            <line x1={p0x} y1={p0y} x2={px} y2={py} stroke="#4f745d" strokeWidth="4.5" strokeDasharray="8 5" />
+
+            {/* Surface Point P0 (L, B) - EXACTLY ON THE MERIDIAN & LATITUDE CURVES! */}
+            <circle cx={p0x} cy={p0y} r="8" fill="#a77748" stroke="#fffdf6" strokeWidth="3" />
+
+            {/* Spatial Point P (L, B, h) */}
+            <circle cx={px} cy={py} r="11" fill="#f4d17c" stroke="#fffdf6" strokeWidth="3.5" />
+            <circle cx={px} cy={py} r={20 + Math.sin(frame / 6) * 3} fill="none" stroke="#a77748" strokeWidth="2" opacity="0.8" />
           </g>
         )}
 
-        {/* Phase 5: Connecting Energy Lines linking 4 Cards to Central Model */}
+        {/* -------------------------------------------------------------------
+            Step 5: Final Energy Conduits Connecting 4 Cards to Central Model
+           ------------------------------------------------------------------- */}
         {p5 > 0.01 && (
           <g opacity={p5}>
             {[290, 390, 490, 590].map((cardY, i) => (
@@ -448,29 +508,34 @@ export const GeodeticSummaryScene: React.FC = () => {
         )}
       </svg>
 
-      {/* Floating Badges on Specific Phases */}
+      {/* Floating Callout Badges (Strictly Chinese, No English/WGS84) */}
       {isPhase1Active && (
-        <Tag x={cx - 80} y={cy - 90} color="#8f4e3e" p={p1}>
-          基准：大地水准面 (海拔 H)
+        <Tag x={cx - 80} y={cy - 110} color="#8f4e3e" p={p1}>
+          基准：凹凸不平的大地水准面
         </Tag>
       )}
 
       {isPhase2Active && (
-        <Tag x={cx - 100} y={cy - 90} color="#315f6d" p={p2}>
-          几何体：旋转椭球面
+        <Tag x={cx - 100} y={cy - 110} color="#315f6d" p={p2}>
+          几何体：光滑规则的旋转椭球面
         </Tag>
       )}
 
       {isPhase3Active && (
-        <Tag x={cx + 120} y={cy - 160} color="#a77748" p={p3}>
-          大地基准面 (WGS-84 / CGCS2000)
+        <Tag x={cx + 120} y={cy - 150} color="#a77748" p={p3}>
+          定位定向：大地基准面
         </Tag>
       )}
 
       {isPhase4Active && (
-        <Tag x={cx + 140} y={cy - 190} color="#4f745d" p={p4}>
-          大地坐标三要素 <Latex math="(L, B, h)" />
-        </Tag>
+        <>
+          <Tag x={p0x + 20} y={p0y + 15} color="#315f6d" p={p4}>
+            曲面点 <Latex math="P_0 (L, B)" />
+          </Tag>
+          <Tag x={px + 20} y={py - 25} color="#4f745d" p={p4}>
+            空间点 <Latex math="P (L, B, h)" />
+          </Tag>
+        </>
       )}
 
       {/* Phase 5: Final Grand Synthesis Card Overlay */}
@@ -502,13 +567,13 @@ export const GeodeticSummaryScene: React.FC = () => {
               borderRadius: 20,
               background: "#315f6d",
               color: "#fffdf6",
-              fontFamily: MONO,
-              fontSize: 15,
+              fontFamily: SERIF,
+              fontSize: 16,
               fontWeight: 700,
               letterSpacing: 2,
             }}
           >
-            GEOGRAPHIC COORDINATE SYSTEM (GCS)
+            地理坐标系
           </div>
 
           <div
