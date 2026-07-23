@@ -4,9 +4,7 @@ import math
 import numpy as np
 from manim import *
 
-config.pixel_width = 1920
-config.pixel_height = 1080
-config.frame_rate = 30
+# Resolution and frame_rate driven by manim.cfg (default 480p 15fps for fast preview)
 config.background_color = "#F9F4E9"
 
 CN_FONT = "Source Han Serif CN"

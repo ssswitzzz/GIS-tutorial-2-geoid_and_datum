@@ -4,9 +4,7 @@ import math
 import numpy as np
 from manim import *
 
-config.pixel_width = 1920
-config.pixel_height = 1080
-config.frame_rate = 30
+# Resolution and frame_rate driven by manim.cfg (default 480p 15fps for fast preview)
 config.background_color = "#F9F4E9"
 
 CN_FONT = "Source Han Serif CN"
@@ -371,19 +369,42 @@ class EllipsoidExplainer(Scene):
             latex(r"(O_{\text{Ellipsoid}} = O_{\text{Mass}})", 20, BLUE),
         ).arrange(DOWN, buff=0.05).next_to(center_dot, DOWN, buff=0.15)
 
-        # Sleek orbit line with ONE satellite measuring global geoid
+        # Realistic Satellite Model & Orbit
         orbit_line = Circle(radius=2.65, stroke_color=BLUE, stroke_width=1.2).set_fill(opacity=0).set_stroke(opacity=0.25).move_to(globe_center)
         sat_pos = globe_center + np.array([2.65 * math.cos(1.15), 2.65 * math.sin(1.15), 0])
-        sat_body = Square(side_length=0.22, stroke_color=BLUE, fill_color=PAPER_LIGHT, fill_opacity=1, stroke_width=1.5).move_to(sat_pos)
-        sat_beam = DashedLine(sat_pos, globe_center + np.array([2.1 * math.cos(1.15), 1.9 * math.sin(1.15), 0]), dash_length=0.08, color=SAGE, stroke_width=1.8)
-        satellite_group = VGroup(orbit_line, sat_body, sat_beam)
+
+        # Realistic GNSS Satellite with dual solar wings, gold bus, antenna dish & signal beam
+        dir_vec = globe_center - sat_pos
+        dir_vec = dir_vec / np.linalg.norm(dir_vec)
+        wing_dx = -dir_vec[1] * 0.26
+        wing_dy = dir_vec[0] * 0.26
+
+        panel_left = Polygon(
+            sat_pos + np.array([wing_dx * 0.3, wing_dy * 0.3, 0]) + dir_vec * 0.08,
+            sat_pos + np.array([wing_dx * 1.3, wing_dy * 1.3, 0]) + dir_vec * 0.08,
+            sat_pos + np.array([wing_dx * 1.3, wing_dy * 1.3, 0]) - dir_vec * 0.08,
+            sat_pos + np.array([wing_dx * 0.3, wing_dy * 0.3, 0]) - dir_vec * 0.08,
+            stroke_color=BLUE, stroke_width=1.5, fill_color="#2c4d59", fill_opacity=0.95
+        )
+        panel_right = Polygon(
+            sat_pos - np.array([wing_dx * 0.3, wing_dy * 0.3, 0]) + dir_vec * 0.08,
+            sat_pos - np.array([wing_dx * 1.3, wing_dy * 1.3, 0]) + dir_vec * 0.08,
+            sat_pos - np.array([wing_dx * 1.3, wing_dy * 1.3, 0]) - dir_vec * 0.08,
+            sat_pos - np.array([wing_dx * 0.3, wing_dy * 0.3, 0]) - dir_vec * 0.08,
+            stroke_color=BLUE, stroke_width=1.5, fill_color="#2c4d59", fill_opacity=0.95
+        )
+        sat_bus = Square(side_length=0.22, stroke_color=AMBER, fill_color="#1e2623", fill_opacity=1, stroke_width=2).move_to(sat_pos)
+        sat_dish = Circle(radius=0.07, stroke_color=AMBER, stroke_width=2, fill_color=PAPER_LIGHT, fill_opacity=0.9).move_to(sat_pos + dir_vec * 0.15)
+        sat_beam = DashedLine(sat_pos + dir_vec * 0.22, globe_center + dir_vec * 0.8, dash_length=0.08, color=SAGE, stroke_width=2)
+
+        satellite_group = VGroup(orbit_line, panel_left, panel_right, sat_bus, sat_dish, sat_beam)
 
         b4_card = make_card(
             title="最小二乘法全球拟合",
             title_color=BLUE,
             items=[
                 "• 基于全地球卫星测轨与重力场数据",
-                latex(r"\sum_{i=1}^{n} v_i^2 = \mathrm{Min}", 30, AMBER),
+                latex(r"\sum_{i=1}^{n} v_i^2 = \min", 32, AMBER),
                 "• 使全球高程异常平方和总体最小",
             ],
             tag_text="🌐 表征全球整体平均形状【总地球椭球】",
@@ -403,7 +424,7 @@ class EllipsoidExplainer(Scene):
             Create(global_ell),
             run_time=0.9,
         )
-        self.cue(64.3, Create(satellite_group[0]), Create(satellite_group[1]), Create(satellite_group[2]), run_time=1.0)
+        self.cue(64.3, Create(orbit_line), FadeIn(VGroup(panel_left, panel_right, sat_bus, sat_dish)), Create(sat_beam), run_time=1.0)
         self.cue(66.7, Create(center_dot), Write(center_label), run_time=1.0)
         self.cue(73.5, Create(b4_card[0]), LaggedStart(*[Write(item) for item in b4_card[1]], lag_ratio=0.15), run_time=0.9)
 
@@ -486,7 +507,7 @@ class EllipsoidExplainer(Scene):
             items=[
                 "• 无卫星时代（经典大地测量法）",
                 "• 将椭球中心从地心平移偏置 (参心)",
-                latex(r"\sum_{i \in \Omega} v_i^2 = \mathrm{Min}", 30, SAGE),
+                latex(r"\sum_{i \in \Omega} v_i^2 = \min", 32, SAGE),
             ],
             tag_text="📍 专属于特定国家/区域【参考椭球体】",
             tag_color=AMBER,
