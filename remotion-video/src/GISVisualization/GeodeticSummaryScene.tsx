@@ -544,15 +544,18 @@ export const GeodeticSummaryScene: React.FC = () => {
             left: 600,
             top: 245,
             right: 120,
-            padding: "36px 44px",
+            bottom: 90,
+            padding: "44px 50px",
+            boxSizing: "border-box",
             borderRadius: 14,
-            background: "rgba(255, 253, 246, 0.97)",
+            background: "rgba(255, 253, 246, 0.98)",
             border: "3px solid #315f6d",
-            boxShadow: "0 24px 64px rgba(41,52,47,.18)",
+            boxShadow: "0 24px 68px rgba(41,52,47,.22)",
             opacity: p5,
             transform: `scale(${interpolate(p5, [0, 1], [0.92, 1])})`,
             display: "flex",
             flexDirection: "column",
+            justifyContent: "center",
             alignItems: "center",
             textAlign: "center",
             zIndex: 30,
@@ -561,7 +564,7 @@ export const GeodeticSummaryScene: React.FC = () => {
           {/* Top Seal Tag */}
           <div
             style={{
-              padding: "6px 18px",
+              padding: "7px 22px",
               borderRadius: 20,
               background: "#315f6d",
               color: "#fffdf6",
@@ -577,10 +580,10 @@ export const GeodeticSummaryScene: React.FC = () => {
           <div
             style={{
               fontFamily: SERIF,
-              fontSize: 44,
+              fontSize: 48,
               fontWeight: 700,
               color: "#29342f",
-              marginTop: 18,
+              marginTop: 22,
               lineHeight: 1.2,
             }}
           >
@@ -589,10 +592,10 @@ export const GeodeticSummaryScene: React.FC = () => {
 
           <div
             style={{
-              width: 120,
-              height: 3,
+              width: 140,
+              height: 3.5,
               background: "#a77748",
-              margin: "18px 0",
+              margin: "24px 0",
               borderRadius: 2,
             }}
           />
@@ -600,10 +603,10 @@ export const GeodeticSummaryScene: React.FC = () => {
           <div
             style={{
               fontFamily: SERIF,
-              fontSize: 22,
+              fontSize: 23,
               color: "#5d6964",
-              lineHeight: 1.7,
-              maxWidth: 820,
+              lineHeight: 1.75,
+              maxWidth: 900,
             }}
           >
             <b>大地水准面</b>提供物理海拔基准，<b>旋转椭球面</b>提供解析几何形状，<br />
@@ -614,23 +617,23 @@ export const GeodeticSummaryScene: React.FC = () => {
           {/* Bottom 4 Element Badges Grid */}
           <div
             style={{
-              marginTop: 28,
+              marginTop: 36,
               display: "flex",
-              gap: 16,
+              gap: 18,
               justifyContent: "center",
               flexWrap: "wrap",
             }}
           >
-            <div style={{ padding: "12px 20px", borderRadius: 8, background: "#8f4e3e15", border: "1.5px solid #8f4e3e", color: "#8f4e3e", fontFamily: SERIF, fontSize: 18, fontWeight: 700 }}>
+            <div style={{ padding: "14px 24px", borderRadius: 8, background: "#8f4e3e15", border: "1.5px solid #8f4e3e", color: "#8f4e3e", fontFamily: SERIF, fontSize: 19, fontWeight: 700 }}>
               ① 海拔基准
             </div>
-            <div style={{ padding: "12px 20px", borderRadius: 8, background: "#315f6d15", border: "1.5px solid #315f6d", color: "#315f6d", fontFamily: SERIF, fontSize: 18, fontWeight: 700 }}>
+            <div style={{ padding: "14px 24px", borderRadius: 8, background: "#315f6d15", border: "1.5px solid #315f6d", color: "#315f6d", fontFamily: SERIF, fontSize: 19, fontWeight: 700 }}>
               ② 几何解析
             </div>
-            <div style={{ padding: "12px 20px", borderRadius: 8, background: "#a7774815", border: "1.5px solid #a77748", color: "#a77748", fontFamily: SERIF, fontSize: 18, fontWeight: 700 }}>
+            <div style={{ padding: "14px 24px", borderRadius: 8, background: "#a7774815", border: "1.5px solid #a77748", color: "#a77748", fontFamily: SERIF, fontSize: 19, fontWeight: 700 }}>
               ③ 坐标原点
             </div>
-            <div style={{ padding: "12px 20px", borderRadius: 8, background: "#4f745d15", border: "1.5px solid #4f745d", color: "#4f745d", fontFamily: SERIF, fontSize: 18, fontWeight: 700 }}>
+            <div style={{ padding: "14px 24px", borderRadius: 8, background: "#4f745d15", border: "1.5px solid #4f745d", color: "#4f745d", fontFamily: SERIF, fontSize: 19, fontWeight: 700 }}>
               ④ <Latex math="(L, B, h)" /> 绑定
             </div>
           </div>
