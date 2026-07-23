@@ -366,8 +366,15 @@ class DatumExplainer(Scene):
         ref_spatial_axes = make_spatial_axes_2d(ref_center, scale=1.6, label_prefix="80", color=AMBER)
 
         tangent_pts = [geoid_curve_point(th, geoid_center, 4.8, 4.2) for th in np.linspace(2.28, 2.62, 25)]
-        tangent_glow = VMobject(stroke_color=SAGE, stroke_width=7.5).set_opacity(0.95)
-        tangent_glow.set_points_smoothly(tangent_pts)
+
+        # Elegant dashed contour line replacing thick solid line
+        tangent_glow = DashedVMobject(
+            VMobject(stroke_color=SAGE, stroke_width=3.2).set_points_smoothly(tangent_pts),
+            num_dashes=15,
+        ).set_opacity(0.9)
+
+        # Glow path for ShowPassingFlash sweep
+        glow_path = VMobject(stroke_color=SAGE, stroke_width=9.0).set_points_smoothly(tangent_pts)
 
         tangent_tag = VGroup(
             RoundedRectangle(width=3.2, height=0.48, corner_radius=0.08, stroke_color=SAGE, fill_color=PAPER_LIGHT, fill_opacity=0.96),
@@ -422,6 +429,7 @@ class DatumExplainer(Scene):
             Create(ref_ellipsoid),
             Create(ref_spatial_axes),
             Create(tangent_glow),
+            ShowPassingFlash(glow_path, time_width=0.4),
             Write(tangent_tag),
             run_time=1.1,
         )
