@@ -1,0 +1,4 @@
+{
+  "manim-sideview.manimExecutable": "${workspaceFolder}/.venv/Scripts/manim.exe",
+  "manim-sideview.commandLineArgs": "-ql"
+}

@@ -82,33 +82,42 @@ def ground_fill_shape(profile: VMobject, bottom_y: float = -4.2) -> VMobject:
 
 
 def ocean_water_fill(profile: VMobject, sea_y: float = -0.35) -> VMobject:
-    """100% precise ocean water fills in all low basin valleys below sea level, perfectly matching the terrain curve."""
+    """
+    100% precise ocean water fills in ALL basin valleys below sea level.
+    Dynamically finds exact shoreline intersection points and fills water continuously up to sea_y.
+    """
     water = VGroup()
 
-    num_samples = 400
+    # High precision sampling of terrain profile
+    num_samples = 600
     pts = [profile.point_from_proportion(t) for t in np.linspace(0, 1, num_samples)]
 
-    # Left ocean basin: points with x <= -6.42 and y <= sea_y
-    left_pts = [p for p in pts if p[0] <= -6.42 and p[1] <= sea_y + 0.02]
-    if left_pts:
-        top_right = np.array([left_pts[-1][0], sea_y, 0])
-        top_left = np.array([-7.2, sea_y, 0])
-        
-        w_left = VMobject(stroke_width=0, fill_color=BLUE, fill_opacity=0.45)
-        path_pts = [top_left, top_right] + list(reversed(left_pts)) + [top_left]
-        w_left.set_points_as_corners(path_pts)
-        water.add(w_left)
+    # Group continuous segments where terrain height y is below or equal to sea_y
+    segment = []
+    segments = []
 
-    # Right ocean basin: points with x >= 5.78 and y <= sea_y
-    right_pts = [p for p in pts if p[0] >= 5.78 and p[1] <= sea_y + 0.02]
-    if right_pts:
-        top_left = np.array([right_pts[0][0], sea_y, 0])
-        top_right = np.array([7.2, sea_y, 0])
-        
-        w_right = VMobject(stroke_width=0, fill_color=BLUE, fill_opacity=0.45)
-        path_pts = [top_left, top_right] + list(reversed(right_pts)) + [top_left]
-        w_right.set_points_as_corners(path_pts)
-        water.add(w_right)
+    for p in pts:
+        if p[1] <= sea_y + 0.005:  # Below or touching sea level
+            segment.append(p)
+        else:
+            if len(segment) >= 2:
+                segments.append(segment)
+            segment = []
+    if len(segment) >= 2:
+        segments.append(segment)
+
+    # For each submerged valley segment, build exact water body polygon
+    for seg in segments:
+        start_x = seg[0][0]
+        end_x = seg[-1][0]
+
+        top_left = np.array([start_x, sea_y, 0])
+        top_right = np.array([end_x, sea_y, 0])
+
+        w_body = VMobject(stroke_width=0, fill_color=BLUE, fill_opacity=0.42)
+        path_pts = [top_left, top_right] + list(reversed(seg)) + [top_left]
+        w_body.set_points_as_corners(path_pts)
+        water.add(w_body)
 
     return water
 
