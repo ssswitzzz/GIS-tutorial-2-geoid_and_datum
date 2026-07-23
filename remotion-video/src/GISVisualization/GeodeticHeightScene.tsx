@@ -144,7 +144,7 @@ const CoordinateLift: React.FC<{ opacity: number }> = ({ opacity }) => {
 
   const textIn = inSpring(frame, 10, fps);
   const rise = ramp(frame, 130, 220);
-  const height = interpolate(rise, [0, 1], [0, 195]);
+  const height = interpolate(rise, [0, 1], [0, 110]);
 
   const tokens = [
     { k: "L", label: "大地经度", sub: "确定东西角度", color: "#a77748", from: 35 },
@@ -163,9 +163,30 @@ const CoordinateLift: React.FC<{ opacity: number }> = ({ opacity }) => {
 
   const normDx = 0.9298;
   const normDy = -0.3682;
+  const tanDx = -0.3682;
+  const tanDy = -0.9298;
 
   const px = p0x + height * normDx;
   const py = p0y + height * normDy;
+
+  // Local Tangent Plane Corner Points at P0
+  const tpSize = 75;
+  const tpLatX = 60;
+  const tpLatY = 12;
+
+  const tpP1 = `${(p0x + tanDx * tpSize - tpLatX).toFixed(1)},${(p0y + tanDy * tpSize - tpLatY).toFixed(1)}`;
+  const tpP2 = `${(p0x + tanDx * tpSize + tpLatX).toFixed(1)},${(p0y + tanDy * tpSize + tpLatY).toFixed(1)}`;
+  const tpP3 = `${(p0x - tanDx * tpSize + tpLatX).toFixed(1)},${(p0y - tanDy * tpSize + tpLatY).toFixed(1)}`;
+  const tpP4 = `${(p0x - tanDx * tpSize - tpLatX).toFixed(1)},${(p0y - tanDy * tpSize - tpLatY).toFixed(1)}`;
+
+  // 90-degree Right Angle Symbol Points at P0
+  const raSize = 16;
+  const ra1X = p0x + tanDx * raSize;
+  const ra1Y = p0y + tanDy * raSize;
+  const ra2X = p0x + tanDx * raSize + normDx * raSize;
+  const ra2Y = p0y + tanDy * raSize + normDy * raSize;
+  const ra3X = p0x + normDx * raSize;
+  const ra3Y = p0y + normDy * raSize;
 
   return (
     <AbsoluteFill style={{ opacity }}>
@@ -207,17 +228,38 @@ const CoordinateLift: React.FC<{ opacity: number }> = ({ opacity }) => {
 
         <path d={`M ${cx - rx * 0.86} ${p0y} Q ${cx} ${p0y + 40} ${cx + rx * 0.86} ${p0y}`} fill="none" stroke="#315f6d" strokeWidth="3" opacity="0.85" />
 
+        {/* 1. Local Tangent Plane at P0 (Visual Tangent Surface) */}
+        <polygon
+          points={`${tpP1} ${tpP2} ${tpP3} ${tpP4}`}
+          fill="rgba(79, 116, 93, 0.22)"
+          stroke="#4f745d"
+          strokeWidth="1.8"
+          strokeDasharray="5 4"
+          opacity={ramp(frame, 40, 80)}
+        />
+
+        {/* 2. 90-degree Right Angle Box at P0 Foot to express Perpendicular Normal */}
+        <polyline
+          points={`${ra1X.toFixed(1)},${ra1Y.toFixed(1)} ${ra2X.toFixed(1)},${ra2Y.toFixed(1)} ${ra3X.toFixed(1)},${ra3Y.toFixed(1)}`}
+          fill="none"
+          stroke="#4f745d"
+          strokeWidth="2.5"
+          opacity={ramp(frame, 70, 110)}
+        />
+
+        {/* Extended Reference Line for Normal */}
         <line
           x1={p0x}
           y1={p0y}
-          x2={p0x + 260 * normDx}
-          y2={p0y + 260 * normDy}
+          x2={p0x + 160 * normDx}
+          y2={p0y + 160 * normDy}
           stroke="#4f745d"
-          strokeWidth="3.5"
+          strokeWidth="3"
           strokeDasharray="8 6"
           opacity={ramp(frame, 80, 120)}
         />
 
+        {/* Active Normal Height Segment (Extending from P0 to P) */}
         {height > 2 && (
           <line
             x1={p0x}
@@ -229,8 +271,10 @@ const CoordinateLift: React.FC<{ opacity: number }> = ({ opacity }) => {
           />
         )}
 
+        {/* Surface Point P0 */}
         <circle cx={p0x} cy={p0y} r="8" fill="#a77748" stroke="#fffdf6" strokeWidth="3" />
 
+        {/* Elevated Spatial Point P */}
         {rise > 0.02 && (
           <g transform={`translate(${px}, ${py})`}>
             <circle cx="0" cy="0" r="12" fill="#f6d47f" stroke="#fffdf6" strokeWidth="4" />
