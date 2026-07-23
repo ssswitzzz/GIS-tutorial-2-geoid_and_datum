@@ -68,8 +68,7 @@ def smooth_ellipsoid_3d_vector(
     fill_opacity: float = 0.12,
     stroke_width: float = 3.5,
 ) -> VGroup:
-    """Stereoscopic 3D oblate ellipsoid with elegant transparent equatorial plane and depth-separated grid arcs."""
-    # Outer 2D silhouette profile
+    """Stereoscopic 3D oblate ellipsoid with 3D perspective equator ring touching outer edges EXACTLY."""
     profile = Ellipse(
         width=width,
         height=height,
@@ -79,43 +78,24 @@ def smooth_ellipsoid_3d_vector(
         fill_opacity=fill_opacity,
     ).move_to(center)
 
-    # Elegant filled equatorial plane surface with soft gradient opacity
-    equator_surface = Ellipse(
-        width=width * 0.98,
-        height=1.5,
-        fill_color=color,
-        fill_opacity=0.18,
+    # 3D Perspective Equatorial Ellipse Ring matching outer width EXACTLY (width=width)!
+    equator_3d = Ellipse(
+        width=width,
+        height=1.6,
         stroke_color=color,
-        stroke_width=1.2,
-    ).move_to(center)
+        stroke_width=2.2,
+    ).set_opacity(0.65).move_to(center)
 
-    # Equatorial Grid Ray Lines inside the disk
-    grid_rays = VGroup()
-    for angle_deg in [30, 60, 120, 150]:
-        rad = math.radians(angle_deg)
-        rx = width * 0.48 * math.cos(rad)
-        ry = 0.72 * math.sin(rad)
-        grid_rays.add(Line(center - np.array([rx, ry, 0]), center + np.array([rx, ry, 0]), color=color, stroke_width=1.2).set_opacity(0.25))
-
-    # Polar Rotation Axis
+    # 3D Polar Rotation Axis
     polar_axis = DashedLine(
-        center + DOWN * (height * 0.58),
-        center + UP * (height * 0.58),
+        center + DOWN * (height * 0.55),
+        center + UP * (height * 0.55),
         color=color,
-        stroke_width=2.5,
+        stroke_width=2.2,
         dash_length=0.12,
-    ).set_opacity(0.8)
+    ).set_opacity(0.7)
 
-    # Polar rotation arrow indicator
-    rot_arrow = Arrow(
-        center + UP * (height * 0.52),
-        center + UP * (height * 0.64),
-        color=AMBER,
-        stroke_width=2.8,
-        max_tip_length_to_length_ratio=0.35,
-    )
-
-    return VGroup(profile, equator_surface, grid_rays, polar_axis, rot_arrow)
+    return VGroup(profile, equator_3d, polar_axis)
 
 
 def make_spatial_axes_2d(
@@ -124,54 +104,33 @@ def make_spatial_axes_2d(
     color: str = BLUE,
     label_prefix: str = "",
 ) -> VGroup:
-    """Creates a high-end 3D Isometric Spatial Cartesian Coordinate System with clear badge tags and 3D depth lines."""
+    """Creates a high-end 3D Isometric Spatial Cartesian Coordinate System centered directly at origin."""
     z_dir = np.array([0, 1.0, 0]) * scale
     x_dir = np.array([-0.866, -0.5, 0]) * scale
     y_dir = np.array([0.866, -0.5, 0]) * scale
 
-    # Isometric floor grid lines
     iso_grid = VGroup()
-    for i in np.linspace(-1.0, 1.0, 5):
-        p1 = origin + y_dir * i - x_dir * 1.0
-        p2 = origin + y_dir * i + x_dir * 1.0
-        iso_grid.add(Line(p1, p2, color=color, stroke_width=1.2).set_opacity(0.18))
+    grid_color = color
+    for i in np.linspace(-1.2, 1.2, 7):
+        p1 = origin + y_dir * i - x_dir * 1.2
+        p2 = origin + y_dir * i + x_dir * 1.2
+        iso_grid.add(Line(p1, p2, color=grid_color, stroke_width=1.0).set_opacity(0.18))
 
-        p3 = origin + x_dir * i - y_dir * 1.0
-        p4 = origin + x_dir * i + y_dir * 1.0
-        iso_grid.add(Line(p3, p4, color=color, stroke_width=1.2).set_opacity(0.18))
+        p3 = origin + x_dir * i - y_dir * 1.2
+        p4 = origin + x_dir * i + y_dir * 1.2
+        iso_grid.add(Line(p3, p4, color=grid_color, stroke_width=1.0).set_opacity(0.18))
 
-    # Axis Lines with 3D Arrowheads
-    z_axis = Arrow(origin, origin + z_dir, color=color, stroke_width=3.6, max_tip_length_to_length_ratio=0.14)
-    x_axis = Arrow(origin, origin + x_dir, color=color, stroke_width=3.6, max_tip_length_to_length_ratio=0.14)
-    y_axis = Arrow(origin, origin + y_dir, color=color, stroke_width=3.6, max_tip_length_to_length_ratio=0.14)
+    z_axis = Arrow(origin, origin + z_dir, color=color, stroke_width=3.2, max_tip_length_to_length_ratio=0.15)
+    x_axis = Arrow(origin, origin + x_dir, color=color, stroke_width=3.2, max_tip_length_to_length_ratio=0.15)
+    y_axis = Arrow(origin, origin + y_dir, color=color, stroke_width=3.2, max_tip_length_to_length_ratio=0.15)
 
-    # Sleek Label Badges for X, Y, Z to prevent text overlapping with line strokes
-    def make_axis_badge(text_tex: str, pos: np.ndarray) -> VGroup:
-        t_mob = latex(text_tex, 24, color)
-        bg_box = RoundedRectangle(
-            width=0.52, height=0.44, corner_radius=0.08,
-            stroke_color=color, stroke_width=1.4,
-            fill_color=PAPER_LIGHT, fill_opacity=0.96
-        )
-        t_mob.move_to(bg_box)
-        bg_box.move_to(pos)
-        t_mob.move_to(pos)
-        return VGroup(bg_box, t_mob)
+    z_lbl = latex(rf"Z_{{{label_prefix}}}" if label_prefix else r"Z", 22, color).next_to(z_axis.get_end(), RIGHT, buff=0.12)
+    x_lbl = latex(rf"X_{{{label_prefix}}}" if label_prefix else r"X", 22, color).next_to(x_axis.get_end(), LEFT, buff=0.12)
+    y_lbl = latex(rf"Y_{{{label_prefix}}}" if label_prefix else r"Y", 22, color).next_to(y_axis.get_end(), DR, buff=0.08)
 
-    z_tag_str = rf"Z_{{{label_prefix}}}" if label_prefix else r"Z"
-    x_tag_str = rf"X_{{{label_prefix}}}" if label_prefix else r"X"
-    y_tag_str = rf"Y_{{{label_prefix}}}" if label_prefix else r"Y"
-
-    z_lbl = make_axis_badge(z_tag_str, origin + z_dir + UP * 0.25)
-    x_lbl = make_axis_badge(x_tag_str, origin + x_dir + DL * 0.20)
-    y_lbl = make_axis_badge(y_tag_str, origin + y_dir + DR * 0.20)
-
-    # High-precision Geocenter Origin Badge O
-    origin_dot = Dot(origin, radius=0.10, color=color)
-    origin_ring = Circle(radius=0.22, stroke_color=color, stroke_width=1.8).set_opacity(0.7).move_to(origin)
-
-    o_tag_str = rf"O_{{{label_prefix}}}" if label_prefix else r"O"
-    o_lbl = latex(o_tag_str, 22, color).next_to(origin_ring, DL, buff=0.08)
+    origin_dot = Dot(origin, radius=0.09, color=color)
+    origin_ring = Circle(radius=0.18, stroke_color=color, stroke_width=1.5).set_opacity(0.6).move_to(origin)
+    o_lbl = latex(rf"O_{{{label_prefix}}}" if label_prefix else r"O", 20, color).next_to(origin_ring, DL, buff=0.08)
 
     return VGroup(iso_grid, z_axis, x_axis, y_axis, z_lbl, x_lbl, y_lbl, origin_dot, origin_ring, o_lbl)
 
