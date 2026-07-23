@@ -186,6 +186,36 @@ def make_card(
     return VGroup(bg, content_group)
 
 
+def make_sat_model(pos: np.ndarray, target: np.ndarray, color: str = BLUE) -> VGroup:
+    """Helper to render a high-detail GNSS satellite model with solar wings, bus & beam pointing to target."""
+    dir_vec = target - pos
+    dir_vec = dir_vec / np.linalg.norm(dir_vec)
+
+    wing_dx = -dir_vec[1] * 0.22
+    wing_dy = dir_vec[0] * 0.22
+
+    panel_l = Polygon(
+        pos + np.array([wing_dx * 0.3, wing_dy * 0.3, 0]) + dir_vec * 0.06,
+        pos + np.array([wing_dx * 1.2, wing_dy * 1.2, 0]) + dir_vec * 0.06,
+        pos + np.array([wing_dx * 1.2, wing_dy * 1.2, 0]) - dir_vec * 0.06,
+        pos + np.array([wing_dx * 0.3, wing_dy * 0.3, 0]) - dir_vec * 0.06,
+        stroke_color=color, stroke_width=1.4, fill_color="#2c4d59", fill_opacity=0.95
+    )
+    panel_r = Polygon(
+        pos - np.array([wing_dx * 0.3, wing_dy * 0.3, 0]) + dir_vec * 0.06,
+        pos - np.array([wing_dx * 1.2, wing_dy * 1.2, 0]) + dir_vec * 0.06,
+        pos - np.array([wing_dx * 1.2, wing_dy * 1.2, 0]) - dir_vec * 0.06,
+        pos - np.array([wing_dx * 0.3, wing_dy * 0.3, 0]) - dir_vec * 0.06,
+        stroke_color=color, stroke_width=1.4, fill_color="#2c4d59", fill_opacity=0.95
+    )
+
+    bus = Square(side_length=0.18, stroke_color=AMBER, fill_color="#1e2623", fill_opacity=1, stroke_width=1.8).move_to(pos)
+    dish = Circle(radius=0.06, stroke_color=AMBER, stroke_width=1.8, fill_color=PAPER_LIGHT, fill_opacity=0.9).move_to(pos + dir_vec * 0.12)
+    beam = DashedLine(pos + dir_vec * 0.18, target + dir_vec * 0.5, dash_length=0.08, color=SAGE, stroke_width=1.8)
+
+    return VGroup(panel_l, panel_r, bus, dish, beam)
+
+
 class DatumExplainer(Scene):
     def wait_until(self, target: float) -> None:
         remaining = target - self.time
@@ -351,13 +381,14 @@ class DatumExplainer(Scene):
         origin_star = Star(n=5, outer_radius=0.18, inner_radius=0.08, color=AMBER, fill_color=AMBER, fill_opacity=1.0).move_to(origin_pt)
         origin_pulse = Circle(radius=0.28, stroke_color=AMBER, stroke_width=2).move_to(origin_pt)
 
+        # origin_tag explicitly set to top layer (z_index=50) to prevent line overlap
         origin_tag = VGroup(
-            RoundedRectangle(width=3.2, height=0.68, corner_radius=0.08, stroke_color=AMBER, fill_color=PAPER_LIGHT, fill_opacity=0.96),
+            RoundedRectangle(width=3.2, height=0.68, corner_radius=0.08, stroke_color=AMBER, fill_color=PAPER_LIGHT, fill_opacity=0.98),
             VGroup(
                 cn("📍 国家大地原点", 16, AMBER),
                 cn("陕西省泾阳县永乐镇", 14, INK),
             ).arrange(DOWN, buff=0.04),
-        )
+        ).set_z_index(50)
         origin_tag[1].move_to(origin_tag[0])
         origin_tag.move_to([-4.6, -1.8, 0])
 
@@ -379,7 +410,7 @@ class DatumExplainer(Scene):
         tangent_tag = VGroup(
             RoundedRectangle(width=3.2, height=0.48, corner_radius=0.08, stroke_color=SAGE, fill_color=PAPER_LIGHT, fill_opacity=0.96),
             cn("✨ 大地水准面与参考椭球面相切", 15, SAGE),
-        )
+        ).set_z_index(50)
         tangent_tag[1].move_to(tangent_tag[0])
         tangent_tag.move_to([-4.5, 2.5, 0])
 
@@ -456,25 +487,24 @@ class DatumExplainer(Scene):
         geocentric_axes = make_spatial_axes_2d(geocenter, scale=2.3, color=BLUE)
 
         mass_dot = Dot(geocenter, radius=0.10, color=BLUE)
-        mass_card_bg = RoundedRectangle(width=3.6, height=0.55, corner_radius=0.08, stroke_color=BLUE, fill_color=PAPER_LIGHT, fill_opacity=0.95)
+        mass_card_bg = RoundedRectangle(width=3.6, height=0.55, corner_radius=0.08, stroke_color=BLUE, fill_color=PAPER_LIGHT, fill_opacity=0.98).set_z_index(50)
         mass_text = VGroup(
             cn("椭球中心 ≡ 地球质心 O", 16, BLUE),
             latex(r"(O_{\mathrm{Ellipsoid}} \equiv O_{\mathrm{Mass}})", 15, BLUE),
-        ).arrange(DOWN, buff=0.04)
+        ).arrange(DOWN, buff=0.04).set_z_index(50)
         mass_text.move_to(mass_card_bg)
-        mass_label = VGroup(mass_card_bg, mass_text).move_to([-1.2, -1.8, 0])
+        mass_label = VGroup(mass_card_bg, mass_text).move_to([-1.2, -1.8, 0]).set_z_index(50)
 
         orbit_ring = Circle(radius=2.65, stroke_color=BLUE, stroke_width=1.4).set_stroke(opacity=0.35).move_to(geocenter)
 
+        # High-detail realistic GNSS satellites
         sat1_pos = geocenter + np.array([2.65 * math.cos(0.8), 2.65 * math.sin(0.8), 0])
-        sat1_body = Square(side_length=0.20, stroke_color=BLUE, fill_color=PAPER_LIGHT, fill_opacity=1, stroke_width=1.5).move_to(sat1_pos)
-        sat1_beam = DashedLine(sat1_pos, geocenter, dash_length=0.08, color=SAGE, stroke_width=1.8)
+        sat1_model = make_sat_model(sat1_pos, geocenter, BLUE)
 
         sat2_pos = geocenter + np.array([2.65 * math.cos(3.6), 2.65 * math.sin(3.6), 0])
-        sat2_body = Square(side_length=0.20, stroke_color=BLUE, fill_color=PAPER_LIGHT, fill_opacity=1, stroke_width=1.5).move_to(sat2_pos)
-        sat2_beam = DashedLine(sat2_pos, geocenter, dash_length=0.08, color=SAGE, stroke_width=1.8)
+        sat2_model = make_sat_model(sat2_pos, geocenter, BLUE)
 
-        satellites = VGroup(orbit_ring, sat1_body, sat1_beam, sat2_body, sat2_beam)
+        satellites = VGroup(orbit_ring, sat1_model, sat2_model)
 
         badge_wgs84 = VGroup(
             RoundedRectangle(width=2.4, height=0.48, corner_radius=0.08, stroke_color=BLUE, fill_color=PAPER_LIGHT, fill_opacity=0.96),
